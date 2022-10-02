@@ -1,5 +1,5 @@
 .env
 Backend/config/*
-web/no*
+web/node_modules
 ./keystore.json
 
