@@ -4,22 +4,26 @@ import (
 	v1 "betxin/api/v1"
 	"betxin/model"
 	"betxin/utils/errmsg"
+	"fmt"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func UpdateCategory(c *gin.Context) {
-	var data *model.Category
-	_ = c.ShouldBindJSON(&data)
-
-	code := model.CheckCategory(data.CategoryName)
-	if code == errmsg.SUCCSE {
-		model.UpdateCate(data)
+	var cate *model.Category
+	id, _ := strconv.Atoi(c.Param("id"))
+	_ = c.ShouldBindJSON(&cate)
+	fmt.Println(cate)
+	code := model.CheckCategory(cate.CategoryName)
+	if code != errmsg.SUCCSE {
+		v1.SendResponse(c, errmsg.ERROR_CATENAME_USED, nil)
+		return
+	}
+	code = model.UpdateCate(id, cate.CategoryName)
+	if code != errmsg.SUCCSE {
+		v1.SendResponse(c, errmsg.ERROR_UPDATE_CATENAME, nil)
 	}
 
-	if code == errmsg.ERROR_CATENAME_USED {
-		c.Abort()
-	}
-
-	v1.SendResponse(c, errmsg.SUCCSE, nil)
+	v1.SendResponse(c, errmsg.SUCCSE, cate.CategoryName)
 }

@@ -17,12 +17,23 @@ type CreateResponse struct {
 	Password string `json:"password"`
 }
 
+func CreateAdministratorLixin() {
+	d := &model.Administrator{
+		Username: "Lixin",
+		Password: "123123123",
+	}
+	if code := model.CreateAdministrator(d); code != errmsg.SUCCSE {
+		return
+	}
+}
+
 func CreateAdministrator(c *gin.Context) {
 	var r CreateRequest
 	if err := c.Bind(&r); err != nil {
 		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
 		return
 	}
+
 
 	data := &model.Administrator{
 		Username: r.Password,

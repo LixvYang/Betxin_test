@@ -38,15 +38,15 @@ func CreateBonuse(data *Bonuse) int {
 	return errmsg.SUCCSE
 }
 
-func ListBonuses(pageSize int, pageNum int) ([]Bonuse, int) {
+func ListBonuses(pageSize int, pageNum int) ([]Bonuse, int, int) {
 	var bonuse []Bonuse
 	var total int64
 	db.Model(&bonuse).Count(&total)
 	err := db.Find(&bonuse).Limit(pageSize).Offset((pageNum - 1) * pageSize).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return nil, 0
+		return nil, 0, errmsg.ERROR
 	}
-	return bonuse, int(total)
+	return bonuse, int(total), errmsg.SUCCSE
 }
 
 func DeleteBonuse(trace_id string) int {

@@ -3,11 +3,14 @@ package model
 import (
 	"betxin/utils/errmsg"
 	"time"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 type User struct {
 	Id        int    `gorm:"type:int;primaryKey;autoIncrement" json:"id"`
 	UserId    string    `gorm:"type:varchar(50);not null;index" json:"user_id"`
+	MixinUuid uuid.UUID `gorm:"index;" json:"mixin_uuid"`
 	FullName  string    `gorm:"type:varchar(50);not null" json:"full_name"`
 	AvatarUrl string    `gorm:"type:varchar(255);not null" json:"avatar_url"`
 	MixinId   string    `gorm:"type:varchar(50);not null;index;" json:"mixin_id"`

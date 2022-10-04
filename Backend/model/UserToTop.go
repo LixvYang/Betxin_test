@@ -4,12 +4,14 @@ import (
 	"betxin/utils/errmsg"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/shopspring/decimal"
 )
 
 type UserToTopic struct {
 	Id            int             `gorm:"type:int;primaryKey;autoIncrement" json:"id"`
 	UserId        string          `gorm:"type:varchar(50);not null;index" json:"user_id"`
+	TopicUuid     uuid.UUID       `gorm:"varchar(36);" json:"topic_uuid"`
 	YesRatioPrice decimal.Decimal `gorm:"type:decimal(10,10);not null;" json:"yes_ratio_price"`
 	NoRatioPrice  decimal.Decimal `gorm:"type:decimal(10,10);not null;" json:"no_ratio_price"`
 
@@ -58,4 +60,22 @@ func DeleteUserToTopic(id int) int {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE
+}
+
+func ListUserToTopics(pageSize int, pageNum int) ([]UserToTopic, int64, int) {
+	if pageSize == 0 {
+		pageSize = 50
+	}
+
+	userToTopics := make([]UserToTopic, 0)
+	var count int64
+
+	if err := db.Model(&Topic{}).Count(&count).Error; err != nil {
+		return userToTopics, count, errmsg.ERROR
+	}
+	if err := db.Where("").Offset(pageSize).Limit((pageNum - 1) * pageSize).Order("id desc").Find(&userToTopics).Error; err != nil {
+		return userToTopics, count, errmsg.ERROR
+	}
+
+	return userToTopics, count, errmsg.SUCCSE
 }

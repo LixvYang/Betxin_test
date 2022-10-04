@@ -3,7 +3,6 @@ package model
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"betxin/utils"
 
@@ -50,16 +49,16 @@ func InitDb() {
 		Password: "123456",
 		DB:       0,
 	})
-	ping, err :=  redisClient.Ping().Result()
+	ping, err := redisClient.Ping().Result()
 	if err != nil {
 		log.Fatalln(err)
-		return 
+		return
 	}
 	fmt.Println(ping)
-	// // 如果存在表则删除（删除时会忽略、删除外键约束)
+	// 如果存在表则删除（删除时会忽略、删除外键约束)
 	// db.Migrator().DropTable(&User{})
 	// db.Migrator().DropTable(&Category{})
-	// db.Migrator().DropTable(&Topic{})
+	db.Migrator().DropTable(&Topic{})
 	// db.Migrator().DropTable(&Collect{})
 	// db.Migrator().DropTable(&Bonuse{})
 	// db.Migrator().DropTable(&Currency{})
@@ -72,28 +71,26 @@ func InitDb() {
 	// db.Migrator().DropTable(&Administrator{})
 
 	// 迁移数据表，在没有数据表结构变更时候，建议注释不执行
-	// db.AutoMigrate(
-	// 	&User{},
-	// 	&Category{},
-	// 	&Topic{},
-	// 	&Collect{},
-	// 	&Bonuse{},
-	// 	&Currency{},
-	// 	&MixinMessage{},
-	// 	&SwapOrder{},
-	// 	&MixinNetworkSnapshot{},
-	// 	&UserAuthorization{},
-	// 	&MixinOrder{},
-	// 	&UserToTopic{},
-	// 	&Administrator{},
-	// )
+	db.AutoMigrate(
+		// &User{},
+		// &Category{},
+		&Topic{},
+		// &Collect{},
+		// &Bonuse{},
+		// &Currency{},
+		// &MixinMessage{},
+		// &SwapOrder{},
+		// &MixinNetworkSnapshot{},
+		// &UserAuthorization{},
+		// &MixinOrder{},
+		// &UserToTopic{},
+		// &Administrator{},
+	)
 	sqlDB, _ := db.DB()
 	// SetMaxIdleCons 设置连接池中的最大闲置连接数。
-	sqlDB.SetMaxIdleConns(100)
-
 	// SetMaxOpenCons 设置数据库的最大连接数量。
-	sqlDB.SetMaxOpenConns(1000)
-
-	// SetConnMaxLifetiment 设置连接的最大可复用时间。
-	sqlDB.SetConnMaxLifetime(10 * time.Second)
+	// SetConnMaxLifetiment 设置连接的最大可复用时间
+	sqlDB.SetMaxIdleConns(1000)
+	sqlDB.SetMaxOpenConns(100000)
+	sqlDB.SetConnMaxLifetime(-1)
 }

@@ -53,7 +53,7 @@ func ListCategories(pageSize int, pageNum int) ([]Category, int) {
 }
 
 // EditCate 编辑分类信息
-func UpdateCate(data *Category) int {
+func UpdateCate(id int, categoryName string) int {
 	tx := db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -65,15 +65,15 @@ func UpdateCate(data *Category) int {
 	}
 
 	// 锁住指定 id 的 User 记录
-	if err := tx.Set("gorm:query_option", "FOR UPDATE").Last(&Category{}, data.Id).Error; err != nil {
+	if err := tx.Set("gorm:query_option", "FOR UPDATE").Last(&Category{}, id).Error; err != nil {
 		tx.Rollback()
 		return errmsg.ERROR
 	}
 
 	var maps = make(map[string]interface{})
-	maps["name"] = data.CategoryName
+	maps["category_name"] = categoryName
 
-	if err := db.Model(&Category{}).Where("id = ? ", data.Id).Updates(maps).Error; err != nil {
+	if err := db.Model(&Category{}).Where("id = ? ", id).Updates(maps).Error; err != nil {
 		return errmsg.ERROR
 	}
 	if err := tx.Commit().Error; err != nil {

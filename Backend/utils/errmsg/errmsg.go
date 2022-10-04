@@ -22,10 +22,22 @@ const (
 	// code= 3000... 分类模块的错误
 	ERROR_CATENAME_USED  = 3001
 	ERROR_CATE_NOT_EXIST = 3002
+	ERROR_UPDATE_CATENAME = 3003
 
-	// code=4000... 订单错误
+	// code=4000... 奖金错误
 	ERROR_BONUSE_EXIST     = 4001
 	ERROR_BONUSE_NOT_EXIST = 4002
+	ERROR_LIST_BONUSE = 4003
+	ERROR_UPDAT_BONUSE = 4003
+	ERROR_GET_BONUSE = 4003
+	ERROR_DELETE_BONUSE = 4003
+
+	// code=5000... 话题错误
+	ERROR_UPDATE_TOPIC = 5001
+	ERROR_DELETE_TOPIC = 5002
+	ERROR_LIST_TOPIC = 5003
+	ERROR_GET_TOPIC = 5003
+
 )
 
 var codeMsg = map[int]string{
@@ -45,9 +57,14 @@ var codeMsg = map[int]string{
 
 	ERROR_CATENAME_USED:  "该分类已存在",
 	ERROR_CATE_NOT_EXIST: "该分类不存在",
+	ERROR_UPDATE_CATENAME: "更新分类错误",
 
 	ERROR_BONUSE_EXIST:     "奖金已存在",
 	ERROR_BONUSE_NOT_EXIST: "奖金不存在",
+
+	ERROR_UPDATE_TOPIC: "更新话题错误",
+	ERROR_DELETE_TOPIC: "删除话题错误",
+	ERROR_LIST_TOPIC: "查询话题列表错误",
 }
 
 func GetErrMsg(code int) string {

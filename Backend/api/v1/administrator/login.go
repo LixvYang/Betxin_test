@@ -1,35 +1,40 @@
 package administrator
 
 import (
+	v1 "betxin/api/v1"
 	"betxin/model"
 	"betxin/utils/errmsg"
 	myjwt "betxin/utils/jwt"
-	"net/http"
+	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 )
 
+type LoginResponse struct {
+	Id       int    `json:"id"`
+	Token    string `json:"token"`
+	UserName string `json:"username"`
+}
+
 // Login 后台登陆
 func Login(c *gin.Context) {
 	var formData model.Administrator
 	_ = c.ShouldBindJSON(&formData)
-	var token string
+	fmt.Println(formData)
 	var code int
 
 	formData, code = model.CheckLogin(formData.Username, formData.Password)
-
 	if code == errmsg.SUCCSE {
 		setToken(c, formData)
 	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"status":  code,
-			"data":    formData.Username,
-			"id":      formData.ID,
-			"message": errmsg.GetErrMsg(code),
-			"token":   token,
+		v1.SendResponse(c, errmsg.ERROR, &LoginResponse{
+			Id:       0,
+			Token:    "",
+			UserName: "",
 		})
+		return
 	}
 }
 
@@ -48,19 +53,17 @@ func setToken(c *gin.Context, user model.Administrator) {
 	token, err := j.CreateToken(claims)
 
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"status":  errmsg.ERROR,
-			"message": errmsg.GetErrMsg(errmsg.ERROR),
-			"token":   token,
+		v1.SendResponse(c, errmsg.ERROR, &LoginResponse{
+			Id:       0,
+			Token:    "",
+			UserName: "",
 		})
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"status":  200,
-		"data":    user.Username,
-		"id":      user.ID,
-		"message": errmsg.GetErrMsg(200),
-		"token":   token,
+	v1.SendResponse(c, errmsg.SUCCSE, &LoginResponse{
+		Id:       int(user.ID),
+		Token:    token,
+		UserName: user.Username,
 	})
-	return
 }
