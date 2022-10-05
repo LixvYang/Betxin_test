@@ -2,13 +2,12 @@ package model
 
 import (
 	"betxin/utils/errmsg"
-	"errors"
 	"fmt"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
+	"gorm.io/gorm"
 
-	"github.com/jinzhu/gorm"
 	"github.com/shopspring/decimal"
 )
 
@@ -28,12 +27,10 @@ type Topic struct {
 	UpdatedAt     time.Time       `gorm:"type:datetime(3)" json:"updated_at"`
 }
 
-func (t *Topic) BeforeCreate(tx *gorm.DB) (err error) {
-	if t.Title == "John" {
-		return errors.New("John is not allow to be added")
-	}
-	fmt.Println("BeforeCreate")
-	return
+func (t *Topic) BeforeCreate(tx *gorm.DB) error {
+	t.Uuid = uuid.NewV4()
+	fmt.Println(t.Uuid)
+	return nil
 }
 
 // 根据标签id获取标签数据.

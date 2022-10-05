@@ -4,7 +4,6 @@ import (
 	v1 "betxin/api/v1"
 	"betxin/model"
 	"betxin/utils/errmsg"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,24 +13,32 @@ type ListResponse struct {
 	List       []model.Bonuse `json:"list"`
 }
 
+type ListRequest struct {
+	Offset int `json:"offset"`
+	Limit  int `json:"limit"`
+}
+
 func ListBonuses(c *gin.Context) {
-	pageSize, _ := strconv.Atoi(c.Query("pagesize"))
-	pageNum, _ := strconv.Atoi(c.Query("pagenum"))
+	var r ListRequest
+	if err := c.ShouldBindJSON(&r); err != nil {
+		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
+		return
+	}
 
 	switch {
-	case pageSize >= 100:
-		pageSize = 100
-	case pageSize <= 0:
-		pageSize = 10
+	case r.Offset >= 100:
+		r.Offset = 100
+	case r.Limit <= 0:
+		r.Limit = 10
 	}
 
-	if pageNum == 0 {
-		pageNum = 1
+	if r.Limit == 0 {
+		r.Limit = 10
 	}
 
-	data, total, code := model.ListBonuses(pageSize, pageNum)
+	data, total, code := model.ListBonuses(r.Offset, r.Limit)
 	if code != errmsg.SUCCSE {
-		v1.SendResponse(c, errmsg.ERROR_LIST_BONUSE, nil)
+		v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
 		return
 	}
 	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{

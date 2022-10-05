@@ -8,15 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type CreateRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-type CreateResponse struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 func CreateAdministratorLixin() {
 	d := &model.Administrator{
 		Username: "Lixin",
@@ -27,22 +18,31 @@ func CreateAdministratorLixin() {
 	}
 }
 
+// @Summary 创建管理员
+// @Description 创建管理员
+// @Tags administrator
+// @Accept  json
+// @Produce  json
+// @Param category body administrator.model true "创建管理员"
+// @Success 200 {object} v1.Response "{"code":200,"message":"OK","data":null}"
+// @Router /v1/administrator/add [post]
 func CreateAdministrator(c *gin.Context) {
-	var r CreateRequest
-	if err := c.Bind(&r); err != nil {
+	var r model.Administrator
+	if err := c.ShouldBindJSON(&r); err != nil {
 		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
 		return
 	}
 
-
-	data := &model.Administrator{
-		Username: r.Password,
-		Password: r.Password,
+	code := model.CheckAdministrator(r.Username)
+	if code != errmsg.SUCCSE {
+		v1.SendResponse(c, errmsg.ERROR_USERNAME_USED, nil)
+		return
 	}
-	if code := model.CreateAdministrator(data); code != errmsg.SUCCSE {
+
+	if code := model.CreateAdministrator(&r); code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
-	rsp := CreateResponse(r)
-	v1.SendResponse(c, errmsg.SUCCSE, rsp)
+	
+	v1.SendResponse(c, errmsg.SUCCSE, r.ID)
 }

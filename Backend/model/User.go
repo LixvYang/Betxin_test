@@ -2,13 +2,15 @@ package model
 
 import (
 	"betxin/utils/errmsg"
+	"fmt"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
+	"gorm.io/gorm"
 )
 
 type User struct {
-	Id        int    `gorm:"type:int;primaryKey;autoIncrement" json:"id"`
+	Id        int       `gorm:"type:int;primaryKey;autoIncrement" json:"id"`
 	UserId    string    `gorm:"type:varchar(50);not null;index" json:"user_id"`
 	MixinUuid uuid.UUID `gorm:"index;" json:"mixin_uuid"`
 	FullName  string    `gorm:"type:varchar(50);not null" json:"full_name"`
@@ -16,6 +18,13 @@ type User struct {
 	MixinId   string    `gorm:"type:varchar(50);not null;index;" json:"mixin_id"`
 	CreatedAt time.Time `gorm:"type:datetime(3)" json:"created_at"`
 	UpdatedAt time.Time `gorm:"type:datetime(3)" json:"updated_at"`
+}
+
+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+	fmt.Println("创建之间")
+	u.MixinUuid = uuid.NewV4()
+	fmt.Println(u.MixinUuid)
+	return nil
 }
 
 // CheckUser 查询用户是否存在

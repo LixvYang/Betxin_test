@@ -1,4 +1,4 @@
-package category
+package administrator
 
 import (
 	v1 "betxin/api/v1"
@@ -9,8 +9,8 @@ import (
 )
 
 type ListResponse struct {
-	TotalCount int              `json:"totalCount"`
-	List       []model.Category `json:"list"`
+	TotalCount int                   `json:"totalCount"`
+	List       []model.Administrator `json:"list"`
 }
 
 type ListRequest struct {
@@ -18,16 +18,16 @@ type ListRequest struct {
 	Limit  int `json:"limit"`
 }
 
-// @Summary 获得category列表
-// @Description 获取category列表
-// @Tags category
+// @Summary 获得 administrator 列表
+// @Description 获取administrator列表
+// @Tags administrator
 // @Accept  json
 // @Produce  json
 // @Param   offset      query    int     true     "Offset"
 // @Param   limit      query    int     true      "Limit"
-// @Success 200 {object} category.ListResponse "{"code":200,"message":"OK","data":{"totalCount":1,"list":[]}"
-// @Router /v1/category [get]
-func ListCategories(c *gin.Context) {
+// @Success 200 {object} administrator.ListResponse "{"code":200,"message":"OK","data":{"totalCount":1,"list":[]}"
+// @Router /v1/administrator [get]
+func ListAdministrators(c *gin.Context) {
 	var r ListRequest
 	if err := c.ShouldBindJSON(&r); err != nil {
 		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
@@ -44,9 +44,9 @@ func ListCategories(c *gin.Context) {
 		r.Limit = 10
 	}
 
-	data, total, code := model.ListCategories(r.Offset, r.Limit)
+	data, total, code := model.ListAdministrators(r.Offset, r.Limit)
 	if code != errmsg.SUCCSE {
-		v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
+		v1.SendResponse(c, errmsg.ERROR_LIST_USER, nil)
 		return
 	}
 	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{

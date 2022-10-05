@@ -12,6 +12,15 @@ type Administrator struct {
 	Password string `gorm:"type:varchar(500);not null" json:"password" validate:"required,min=6,max=120" label:"密码"`
 }
 
+func CheckAdministrator(username string) int {
+	var admin Administrator
+	db.Select("id").Where("username = ?", username).First(&admin)
+	if admin.ID > 0 {
+		return errmsg.ERROR
+	}
+	return errmsg.SUCCSE
+}
+
 // CreateAdministrator 新增管理员
 func CreateAdministrator(data *Administrator) int {
 	//data.Password = ScryptPw(data.Password)
@@ -25,6 +34,53 @@ func CreateAdministrator(data *Administrator) int {
 func DeleteAdministrator(id int) int {
 	var user User
 	if err := db.Where("id = ? ", id).Delete(&user).Error; err != nil {
+		return errmsg.ERROR
+	}
+	return errmsg.SUCCSE
+}
+
+func GetAdministratorById(id int) (Administrator, int) {
+	var admin Administrator
+	if err := db.Where("id = ?", id).First(&admin).Error; err != nil {
+		return admin, errmsg.ERROR
+	}
+	return admin, errmsg.SUCCSE
+}
+
+func ListAdministrators(offset int, limit int) ([]Administrator, int, int) {
+	var admin []Administrator
+	var total int64
+	if err := db.Limit(limit).Offset(offset).Find(&admin).Limit(-1).Offset(-1).Count(&total).Error; err != nil && err != gorm.ErrRecordNotFound {
+		return nil, 0, errmsg.ERROR
+	}
+	return admin, int(total), errmsg.SUCCSE
+}
+
+func UpdateAdministrator(id int, admin *Administrator) int {
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return errmsg.ERROR
+	}
+
+	// 锁住指定 id 的 User 记录
+	if err := tx.Set("gorm:query_option", "FOR UPDATE").Last(&Administrator{}, id).Error; err != nil {
+		tx.Rollback()
+		return errmsg.ERROR
+	}
+
+	var maps = make(map[string]interface{})
+	maps["username"] = admin.Username
+	maps["password"] = admin.Password
+
+	if err := db.Model(&Category{}).Where("id = ? ", id).Updates(maps).Error; err != nil {
+		return errmsg.ERROR
+	}
+	if err := tx.Commit().Error; err != nil {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE

@@ -1,4 +1,4 @@
-package category
+package administrator
 
 import (
 	v1 "betxin/api/v1"
@@ -9,17 +9,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary 根据id删除分类
-// @Description 根据id删除分类
-// @Tags	category
+// @Summary 根据id删除管理员
+// @Description 根据id删除管理员
+// @Tags	administrator
 // @Accept  json
 // @Produce  json
-// @Param id path int true "分类的数据库id"
+// @Param id path int true "管理员的数据库id"
 // @Success 200 {object} v1.Response "{"code":200,"message":"OK","data":null}"
-// @Router /v1/category/{id} [delete]
-func DeleteCategory(c *gin.Context) {
-	CategoryId, _ := strconv.Atoi(c.Param("id"))
-	code := model.DeleteCategory(CategoryId)
+// @Router /v1/administrator/{id} [delete]
+func DeleteAdministrator(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	code := model.DeleteAdministrator(id)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR_DELETE_CATENAME, nil)
 		return

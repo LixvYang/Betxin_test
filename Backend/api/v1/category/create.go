@@ -8,33 +8,31 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type CreateRequest struct {
-	CategoryName string `json:"category_name"`
-}
-type CreateResponse struct {
-	CategoryName string `json:"category_name"`
-}
-
+// @Summary 创建分类
+// @Description 创建分类
+// @Tags category
+// @Accept  json
+// @Produce  json
+// @Param category body category.model true "创建分类"
+// @Success 200 {object} v1.Response "{"code":200,"message":"OK","data":null}"
+// @Router /v1/category/add [post]
 func CreateCatrgory(c *gin.Context) {
-	var r CreateRequest
-	if err := c.Bind(&r); err != nil {
+	var r model.Category
+	if err := c.ShouldBindJSON(&r); err != nil {
 		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
 		return
 	}
-	data := &model.Category{
-		CategoryName: r.CategoryName,
-	}
 
-	code := model.CheckCategory(data.CategoryName)
+	code := model.CheckCategory(r.CategoryName)
 	if code != errmsg.SUCCSE {
-		v1.SendResponse(c, errmsg.ERROR, nil)
+		v1.SendResponse(c, errmsg.ERROR_CATENAME_USED, nil)
 		return
 	}
-	if code = model.CreateCatrgory(data); code != errmsg.SUCCSE {
+	
+	if code = model.CreateCatrgory(&r); code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
 
-	rsp := CreateResponse(r)
-	v1.SendResponse(c, errmsg.SUCCSE, rsp)
+	v1.SendResponse(c, errmsg.SUCCSE, nil)
 }

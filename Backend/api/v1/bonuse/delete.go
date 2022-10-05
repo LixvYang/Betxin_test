@@ -9,11 +9,13 @@ import (
 )
 
 func DeleteBonuse(c *gin.Context) {
-	trace_id := c.Param("trace_id")
-	code := model.DeleteBonuse(trace_id)
+	id := c.Param("id")
+
+	code := model.DeleteBonuse(id)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
-	v1.SendResponse(c, errmsg.SUCCSE, trace_id)
+	
+	v1.SendResponse(c, errmsg.SUCCSE, id)
 }

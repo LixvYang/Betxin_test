@@ -20,7 +20,11 @@ import (
 
 func InitRouter() {
 	gin.SetMode(utils.AppMode)
+	
+	gin.Default()
 	r := gin.New()
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
 	r.LoadHTMLFiles("dist/index.html", "dist/welcome.html")
 	r.Use(cors.Cors())
 	/*
@@ -59,7 +63,10 @@ func InitRouter() {
 		})
 
 		//话题
-		router.POST("/topic/add", topic.CreateTopic)
+		router.POST("/topic/create", topic.CreateTopic)
+
+		// 用户
+		// router.POST("/user/add", user)
 	}
 
 	_ = r.Run(utils.HttpPort)

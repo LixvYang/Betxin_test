@@ -1,4 +1,4 @@
-package category
+package bonuse
 
 import (
 	v1 "betxin/api/v1"
@@ -10,22 +10,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func UpdateCategory(c *gin.Context) {
-	var cate *model.Category
+func UpdateBonuse(c *gin.Context) {
+	var bonuse *model.Bonuse
 	id, _ := strconv.Atoi(c.Param("id"))
-	if err := c.ShouldBindJSON(&cate); err != nil {
+	if err := c.ShouldBindJSON(&bonuse); err != nil {
 		log.Panicln(err)
 	}
-	code := model.CheckCategory(cate.CategoryName)
+	code := model.CheckBonuse(bonuse.TraceId)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR_CATENAME_USED, nil)
 		return
 	}
-	code = model.UpdateCate(id, cate.CategoryName)
+	code = model.UpdateBonuse(id, bonuse)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR_UPDATE_CATENAME, nil)
 		return
 	}
 
-	v1.SendResponse(c, errmsg.SUCCSE, cate.CategoryName)
+	v1.SendResponse(c, errmsg.SUCCSE, bonuse.TraceId)
 }

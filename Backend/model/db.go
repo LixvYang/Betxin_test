@@ -58,7 +58,7 @@ func InitDb() {
 	// 如果存在表则删除（删除时会忽略、删除外键约束)
 	// db.Migrator().DropTable(&User{})
 	// db.Migrator().DropTable(&Category{})
-	db.Migrator().DropTable(&Topic{})
+	// db.Migrator().DropTable(&Topic{})
 	// db.Migrator().DropTable(&Collect{})
 	// db.Migrator().DropTable(&Bonuse{})
 	// db.Migrator().DropTable(&Currency{})
@@ -71,10 +71,10 @@ func InitDb() {
 	// db.Migrator().DropTable(&Administrator{})
 
 	// 迁移数据表，在没有数据表结构变更时候，建议注释不执行
-	db.AutoMigrate(
+	// db.AutoMigrate(
 		// &User{},
 		// &Category{},
-		&Topic{},
+		// &Topic{},
 		// &Collect{},
 		// &Bonuse{},
 		// &Currency{},
@@ -85,7 +85,7 @@ func InitDb() {
 		// &MixinOrder{},
 		// &UserToTopic{},
 		// &Administrator{},
-	)
+	// )
 	sqlDB, _ := db.DB()
 	// SetMaxIdleCons 设置连接池中的最大闲置连接数。
 	// SetMaxOpenCons 设置数据库的最大连接数量。

@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"betxin/utils/errmsg"
 
 	"gorm.io/gorm"
@@ -24,7 +23,7 @@ func CheckCategory(category_name string) int {
 
 //Create category
 func CreateCatrgory(data *Category) int {
-	if err := db.Model(&Category{}).Create(&data).Error; err != nil {
+	if err := db.Create(&data).Error; err != nil {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE
@@ -34,22 +33,19 @@ func CreateCatrgory(data *Category) int {
 func GetCategoryById(id int) (Category, int) {
 	var cate Category
 	if err := db.Where("id = ?", id).First(&cate).Error; err != nil {
-		return Category{}, errmsg.ERROR
+		return cate, errmsg.ERROR
 	}
-	fmt.Println(&cate)
 	return cate, errmsg.SUCCSE
 }
 
 // GetCate 查询分类列表
-func ListCategories(pageSize int, pageNum int) ([]Category, int) {
+func ListCategories(offset int, limit int) ([]Category, int, int) {
 	var cate []Category
 	var total int64
-	db.Model(&cate).Count(&total)
-	err := db.Find(&cate).Limit(pageSize).Offset((pageNum - 1) * pageSize).Error
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return nil, 0
+	if err := db.Limit(limit).Offset(offset).Find(&cate).Limit(-1).Offset(-1).Count(&total).Error; err != nil && err != gorm.ErrRecordNotFound {
+		return nil, 0, errmsg.ERROR
 	}
-	return cate,int(total) 
+	return cate, int(total), errmsg.SUCCSE
 }
 
 // EditCate 编辑分类信息
