@@ -25,6 +25,12 @@ var (
 	PrivateKey string
 	AppSecret  string
 
+	Zone       string
+	AccessKey  string
+	SecretKey  string
+	Bucket     string
+	QiniuSever string
+
 	PUSD  string
 	BTC   string
 	BOX   string
@@ -73,6 +79,7 @@ func init() {
 	LoadServer(f)
 	LoadData(f)
 	LoadMixinBot(f)
+	LoadQiniu(f)
 	LoadMixinAssetId(f)
 }
 
@@ -89,6 +96,14 @@ func LoadData(file *ini.File) {
 	DbUser = file.Section("database").Key("DbUser").MustString("root")
 	DbPassWord = file.Section("database").Key("DbPassWord").MustString("")
 	DbName = file.Section("database").Key("DbName").MustString("")
+}
+
+func LoadQiniu(file *ini.File) {
+	Zone = file.Section("qiniu").Key("Zone").MustString("")
+	AccessKey = file.Section("qiniu").Key("AccessKey").MustString("")
+	SecretKey = file.Section("qiniu").Key("SecretKey").MustString("")
+	Bucket = file.Section("qiniu").Key("Bucket").MustString("")
+	QiniuSever = file.Section("qiniu").Key("QiniuSever").MustString("")
 }
 
 func LoadMixinBot(file *ini.File) {

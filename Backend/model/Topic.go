@@ -24,6 +24,7 @@ type Topic struct {
 	NoRatioPrice  decimal.Decimal `gorm:"type:decimal(16,8);default 0" json:"no_ratio_ratio"`
 	TotalPrice    decimal.Decimal `gorm:"type:decimal(32,8);default 0;" json:"total_price"`
 	ReadCount     int             `gorm:"type:int;not null;default:0" json:"read_count"`
+	ImgUrl        string          `gorm:"varchar(255);default null;" json:"img_url"`
 
 	CreatedAt time.Time `gorm:"type:datetime(3)" json:"created_at"`
 	UpdatedAt time.Time `gorm:"type:datetime(3)" json:"updated_at"`
