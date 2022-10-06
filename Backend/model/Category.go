@@ -29,7 +29,7 @@ func CreateCatrgory(data *Category) int {
 	return errmsg.SUCCSE
 }
 
-// 根据种类id获取标签数据.
+// 根据种类id获取话题数据.
 func GetCategoryById(id int) (Category, int) {
 	var cate Category
 	if err := db.Where("id = ?", id).First(&cate).Error; err != nil {

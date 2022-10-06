@@ -2,7 +2,6 @@ package model
 
 import (
 	"betxin/utils/errmsg"
-	"fmt"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -12,32 +11,58 @@ import (
 )
 
 type Topic struct {
-	Uuid          uuid.UUID       `gorm:"type:varchar(36);" json:"uuid"`
-	CategoryName  string          `gorm:"type:varchar(20)" json:"category_name"`
-	Title         string          `gorm:"type:varchar(50);not null;" json:"title"`
-	Intro         string          `gorm:"type:varchar(50);not null;" json:"intro"`
-	Content       string          `gorm:"type:varchar(50);not null;" json:"content"`
+	Uuid          uuid.UUID       `gorm:"type:varchar(36);index;" json:"uuid"`
+	Cid           int             `gorm:"type:int;not null" json:"cid"`
+	Category      Category        `gorm:"foreignKey:Cid" json:"category"`
+	Title         string          `gorm:"type:varchar(50);not null;index:title_intro_content_topic_index" json:"title"`
+	Intro         string          `gorm:"type:varchar(50);not null;index:title_intro_content_topic_index" json:"intro"`
+	Content       string          `gorm:"type:varchar(50);not null;index:title_intro_content_topic_index" json:"content"`
 	CollectCount  int             `gorm:"type:int;default 0" json:"collect_count"`
-	YesRatio      decimal.Decimal `gorm:"type:decimal(4,2);default 0;" json:"yes_ratio"`
-	NoRatio       decimal.Decimal `gorm:"type:decimal(4,2);default 0" json:"no_ratio"`
+	YesRatio      decimal.Decimal `gorm:"type:decimal(4,2);default 0.00;" json:"yes_ratio"`
+	NoRatio       decimal.Decimal `gorm:"type:decimal(4,2);default 0.00" json:"no_ratio"`
 	YesRatioPrice decimal.Decimal `gorm:"type:decimal(16,8);default 0" json:"yes_ratio_ratio"`
 	NoRatioPrice  decimal.Decimal `gorm:"type:decimal(16,8);default 0" json:"no_ratio_ratio"`
 	TotalPrice    decimal.Decimal `gorm:"type:decimal(32,8);default 0;" json:"total_price"`
-	CreatedAt     time.Time       `gorm:"type:datetime(3)" json:"created_at"`
-	UpdatedAt     time.Time       `gorm:"type:datetime(3)" json:"updated_at"`
+	ReadCount     int             `gorm:"type:int;not null;default:0" json:"read_count"`
+
+	CreatedAt time.Time `gorm:"type:datetime(3)" json:"created_at"`
+	UpdatedAt time.Time `gorm:"type:datetime(3)" json:"updated_at"`
 }
 
 func (t *Topic) BeforeCreate(tx *gorm.DB) error {
 	t.Uuid = uuid.NewV4()
-	fmt.Println(t.Uuid)
 	return nil
 }
 
-// 根据标签id获取标签数据.
-func GetTopicById(id int) (Topic, int) {
+func CheckTopic(title string) int {
 	var topic Topic
-	if err := db.Find(&topic, id).Error; err != nil {
-		return Topic{}, errmsg.ERROR
+	db.Select("uuid").Where("title = ?", title).First(&topic)
+	if topic.Intro != "" {
+		return errmsg.ERROR
+	}
+	return errmsg.SUCCSE
+}
+
+// GetCateArt 查询分类下的所有话题
+func GetTopicByCid(cid int, limit int, offset int) ([]Topic, int, int) {
+	var topicList []Topic
+	var total int64
+	err := db.Preload("Category").Limit(limit).Offset(offset).Where("cid =?", cid).Find(&topicList).Error
+	db.Model(&topicList).Where("cid =?", cid).Count(&total)
+	if err != nil {
+		return nil, errmsg.ERROR, 0
+	}
+
+	return topicList, int(total), errmsg.SUCCSE
+}
+
+// 根据uuid获取话题数据.  查询单个话题
+func GetTopicById(uuid uuid.UUID) (Topic, int) {
+	var topic Topic
+	err := db.Where("uuid = ?", uuid).Preload("Category").First((&topic)).Error
+	db.Model(&topic).Where("uuid = ?", uuid).UpdateColumn("read_count", gorm.Expr("read_count + ?", 1))
+	if err != nil {
+		return topic, errmsg.ERROR
 	}
 	return topic, errmsg.SUCCSE
 }
@@ -76,8 +101,6 @@ func UpdateTopic(data *Topic) int {
 	}
 
 	var maps = make(map[string]interface{})
-	// maps["CategoryId"] = data.CategoryName
-	// maps["Title"] = data.Title
 	maps["Intro"] = data.Intro
 	maps["Content"] = data.Content
 	maps["CollectCount"] = data.CollectCount
@@ -95,21 +118,32 @@ func UpdateTopic(data *Topic) int {
 	return errmsg.SUCCSE
 }
 
-//list Topics
-func ListTopics(pageSize int, pageNum int) ([]Topic, int64, int) {
-	if pageSize == 0 {
-		pageSize = 50
+// GetArt 查询文章列表
+func ListTopics(offset int, limit int) ([]Topic, int, int) {
+	var topicList []Topic
+	var err error
+	var total int64
+	err = db.Select("topic.uuid, cid, title, intro,  content, collect_count, yes_ratio, no_ratio, yes_ratio_price, no_ratio_price, total_price, read_count, Category.category_name, Category.id, created_at, updated_at").
+		Limit(limit).Offset(offset).Order("Created_At DESC").Joins("Category").Find(&topicList).Error
+	// 单独计数
+	db.Model(&topicList).Count(&total)
+	if err != nil {
+		return nil, 0, errmsg.ERROR
 	}
+	return topicList, int(total), errmsg.SUCCSE
+}
 
-	Topics := make([]Topic, 0)
-	var count int64
-
-	if err := db.Model(&Topic{}).Count(&count).Error; err != nil {
-		return Topics, count, errmsg.ERROR
+// 搜索标题
+func SearchTopic(title, content, intro string, offset int, limit int) ([]Topic, int, int) {
+	var topicList []Topic
+	var err error
+	var total int64
+	err = db.Select("topic.uuid, cid, title, intro,  content, collect_count, yes_ratio, no_ratio, yes_ratio_price, no_ratio_price, total_price, read_count, Category.category_name, Category.id, created_at, updated_at").
+		Order("Created_At DESC").Joins("Category").Where("title LIKE ? OR content = ? OR intro = ?", "%"+title+"%", "%"+content+"%", "%"+intro+"%").Limit(limit).Offset(offset).Find(&topicList).Error
+	//单独计数
+	db.Model(&topicList).Where("title LIKE ? OR content = ? OR intro = ?", "%"+title+"%", "%"+content+"%", "%"+intro+"%").Count(&total)
+	if err != nil {
+		return nil, int(total), errmsg.ERROR
 	}
-	if err := db.Where("").Offset(pageSize).Limit((pageNum - 1) * pageSize).Order("id desc").Find(&Topics).Error; err != nil {
-		return Topics, count, errmsg.ERROR
-	}
-
-	return Topics, count, errmsg.SUCCSE
+	return topicList, int(total), errmsg.SUCCSE
 }

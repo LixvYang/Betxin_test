@@ -49,8 +49,8 @@ func GetBonuseByTraceId(trace_id string) (Bonuse, int) {
 func ListBonuses(pageSize int, pageNum int) ([]Bonuse, int, int) {
 	var bonuse []Bonuse
 	var total int64
-	db.Model(&bonuse).Count(&total)
 	err := db.Find(&bonuse).Limit(pageSize).Offset((pageNum - 1) * pageSize).Error
+	db.Model(&bonuse).Count(&total)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, 0, errmsg.ERROR
 	}
@@ -100,8 +100,8 @@ func DeleteBonuse(id string) int {
 	return errmsg.SUCCSE
 }
 
-func GetBonusesByUserId(user_id int) ([]*Bonuse, int) {
-	var bonuse []*Bonuse
+func GetBonusesByUserId(user_id int) ([]Bonuse, int) {
+	var bonuse []Bonuse
 	var total int64
 	db.Model(&bonuse).Count(&total)
 	if err := db.Find(&bonuse).Where("user_id = ?", user_id).Error; err != nil {

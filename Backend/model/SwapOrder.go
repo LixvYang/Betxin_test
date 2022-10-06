@@ -27,28 +27,60 @@ func CreateSwapOrder(data *SwapOrder) int {
 	return errmsg.SUCCSE
 }
 
-func DeleteSwapOrder(trace_id string) int {
-	if err := db.Delete(&SwapOrder{}, trace_id).Error; err != nil {
+func DeleteSwapOrder(traceId string) int {
+	if err := db.Delete(&SwapOrder{}, traceId).Error; err != nil {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE
 }
 
-func GetSwapOrder(trace_id string) (SwapOrder, int) {
+func UpdateSwapOrder(traceId string, data *SwapOrder) int {
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return errmsg.ERROR
+	}
+
+	// 锁住指定 id 的 User 记录
+	if err := tx.Set("gorm:query_option", "FOR UPDATE").Last(&SwapOrder{}, traceId).Error; err != nil {
+		tx.Rollback()
+		return errmsg.ERROR
+	}
+
+	var maps = make(map[string]interface{})
+	maps["amount"] = data.Amount
+	maps["asset_id"] = data.AssetID
+	maps["memo"] = data.Memo
+	maps["state"] = data.State
+	maps["type"] = data.Type
+	if err := db.Model(&UserToTopic{}).Where("trace_id = ?", traceId).Updates(maps).Error; err != nil {
+		return errmsg.ERROR
+	}
+	if err := tx.Commit().Error; err != nil {
+		return errmsg.ERROR
+	}
+	return errmsg.SUCCSE
+}
+
+func GetSwapOrder(traceId string) (SwapOrder, int) {
 	var swapOrder SwapOrder
-	if err := db.First(&swapOrder, trace_id).Error; err != nil {
+	if err := db.First(&swapOrder, traceId).Error; err != nil {
 		return SwapOrder{}, errmsg.ERROR
 	}
 	return swapOrder, errmsg.SUCCSE
 }
 
-func ListSwapOrders(pageSize int, pageNum int) ([]*SwapOrder, int) {
-	var swapOrder []*SwapOrder
+func ListSwapOrders(offset int, limit int) ([]SwapOrder, int) {
+	var swapOrders []SwapOrder
 	var total int64
-	db.Model(&swapOrder).Count(&total)
-	err := db.Find(&swapOrder).Limit(pageSize).Offset((pageNum - 1) * pageSize).Error
+	db.Model(&swapOrders).Count(&total)
+	err := db.Find(&swapOrders).Limit(limit).Offset(offset).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, 0
 	}
-	return swapOrder, int(total)
+	return swapOrders, int(total)
 }

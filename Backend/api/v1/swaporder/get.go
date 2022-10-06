@@ -1,4 +1,4 @@
-package topic
+package swaporder
 
 import (
 	v1 "betxin/api/v1"
@@ -8,14 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateTopic(c *gin.Context) {
-	var data model.Topic
-	if err := c.ShouldBindJSON(&data); err != nil {
-		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
-		return
-	}
+func GetSwapOrder(c *gin.Context) {
+	traceId := c.Param("traceId")
 
-	code := model.CreateTopic(&data)
+	data, code := model.GetSwapOrder(traceId)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return

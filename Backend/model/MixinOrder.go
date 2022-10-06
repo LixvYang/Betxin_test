@@ -27,28 +27,59 @@ func CreateMixinOrder(data *MixinOrder) int {
 	return errmsg.SUCCSE
 }
 
-func DeleteMixinOrder(trace_id int) int {
-	if err := db.Delete(&User{}, trace_id).Error; err != nil {
+func DeleteMixinOrder(traceId string) int {
+	if err := db.Delete(&User{}, traceId).Error; err != nil {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE
 }
 
-func GetMixinOrderById(trace_id string) (MixinOrder, int) {
+func GetMixinOrderByTraceId(traceId string) (MixinOrder, int) {
 	var mixinOrder MixinOrder
-	if err := db.First(&mixinOrder, trace_id).Error; err != nil {
+	if err := db.First(&mixinOrder, traceId).Error; err != nil {
 		return MixinOrder{}, errmsg.ERROR
 	}
 	return mixinOrder, errmsg.SUCCSE
 }
 
-func ListMixinOrder(pageSize, pageNum int) ([]MixinOrder, int) {
+func UpdateMixinOrder(traceId string, data *MixinOrder) int {
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return errmsg.ERROR
+	}
+
+	// 锁住指定 id 的 User 记录
+	if err := tx.Set("gorm:query_option", "FOR UPDATE").Last(&MixinOrder{}, traceId).Error; err != nil {
+		tx.Rollback()
+		return errmsg.ERROR
+	}
+
+	var maps = make(map[string]interface{})
+	maps["asset_id"] = data.AssetId
+	maps["amount"] = data.Amount
+	maps["memo"] = data.Memo
+
+	if err := db.Model(&Category{}).Where("trace_id = ? ", traceId).Updates(maps).Error; err != nil {
+		return errmsg.ERROR
+	}
+	if err := tx.Commit().Error; err != nil {
+		return errmsg.ERROR
+	}
+	return errmsg.SUCCSE
+}
+
+func ListMixinOrder(limit, offset int) ([]MixinOrder, int, int) {
 	var mixinOrder []MixinOrder
 	var total int64
 	db.Model(&mixinOrder).Count(&total)
-	err := db.Find(&mixinOrder).Limit(pageSize).Offset((pageNum - 1) * pageSize).Error
+	err := db.Find(&mixinOrder).Limit(limit).Offset(offset).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return nil, 0
+		return nil, 0, errmsg.ERROR
 	}
-	return mixinOrder, int(total)
+	return mixinOrder, int(total), errmsg.SUCCSE
 }

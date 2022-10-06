@@ -64,9 +64,13 @@ func InitRouter() {
 
 		//话题
 		router.POST("/topic/create", topic.CreateTopic)
-
+		router.POST("/topic/cid/:cid", topic.GetTopicByCid)
+		router.POST("/topic/list", topic.ListTopics)
+		router.GET("/topic/:id", topic.GetTopicInfoById)
 		// 用户
 		// router.POST("/user/add", user)
+
+		
 	}
 
 	_ = r.Run(utils.HttpPort)
