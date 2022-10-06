@@ -71,3 +71,17 @@ func GetUserAuthorization(user_id string) (string, int) {
 	}
 	return userAuthorization.AccessToken, errmsg.SUCCSE
 }
+
+func ListUserAuthorietion(offset, limit int) ([]UserAuthorization, int, int) {
+	var total int64
+	var userAuth []UserAuthorization
+
+	if err := db.Model(&UserAuthorization{}).Count(&total).Error; err != nil {
+		return userAuth, 0, errmsg.ERROR
+	}
+
+	if err := db.Offset(offset).Limit(limit).Find(&userAuth).Error; err != nil {
+		return userAuth, 0, errmsg.ERROR
+	}
+	return userAuth, int(total), errmsg.SUCCSE
+}

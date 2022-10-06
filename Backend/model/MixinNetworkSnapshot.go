@@ -101,8 +101,8 @@ func ListMixinNetworkSnapshots(offset int, limit int) ([]MixinNetworkSnapshot, i
 func ListMixinNetworkSnapshotsByUserId(userId string, offset int, limit int) ([]MixinNetworkSnapshot, int, int) {
 	var mixinNetworkSnapshot []MixinNetworkSnapshot
 	var total int64
-	var err error
-	err = db.Find(&mixinNetworkSnapshot).Where("user_id = ?", userId).Error
+
+	err := db.Find(&mixinNetworkSnapshot).Where("user_id = ?", userId).Error
 	db.Model(mixinNetworkSnapshot).Count(&total)
 	if err != nil {
 		return nil, 0, errmsg.ERROR
