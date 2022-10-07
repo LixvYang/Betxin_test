@@ -20,5 +20,8 @@ func CreateTopic(c *gin.Context) {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
+
+	v1.Redis().DelKeys(v1.TOPIC_TOTAL, v1.TOPIC_LIST)
+
 	v1.SendResponse(c, errmsg.SUCCSE, data)
 }

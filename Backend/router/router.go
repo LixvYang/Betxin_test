@@ -31,7 +31,7 @@ func InitRouter() {
 	r.Use(gin.Recovery())
 	r.Use(cors.Cors())
 	r.LoadHTMLFiles("dist/index.html", "dist/welcome.html")
-	
+
 	auth := r.Group("api/v1")
 	auth.Use(jwt.JwtToken())
 	{
@@ -59,7 +59,6 @@ func InitRouter() {
 		// topic 管理话题
 
 		// upload   上传文件
-
 
 		// user 用户管理
 
@@ -93,9 +92,11 @@ func InitRouter() {
 
 		//话题
 		router.POST("/topic/create", topic.CreateTopic)
-		router.POST("/topic/cid/:cid", topic.GetTopicByCid)
 		router.POST("/topic/list", topic.ListTopics)
+		router.POST("/topic/cid/:cid", topic.GetTopicByCid)
 		router.GET("/topic/:id", topic.GetTopicInfoById)
+		router.POST("/topic/stop/:id", topic.StopTopic)
+		router.PUT("/topic/update/:id", topic.UpdateTopic)
 		// 用户
 		// router.POST("/user/add", user)
 		router.POST("/file", upload.Upload)

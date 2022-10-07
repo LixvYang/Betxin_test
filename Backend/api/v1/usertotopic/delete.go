@@ -25,5 +25,14 @@ func DeleteUserToTopic(c *gin.Context) {
 		v1.SendResponse(c, errmsg.ERROR_DELETE_CATENAME, nil)
 		return
 	}
+
+	v1.Redis().DelKeys(
+		v1.USERTOTOPIC_LIST,
+		v1.USERTOTOPIC_TOTAL,
+		v1.USERTOTOPIC_TOPIC_TOTAL+d.TopicUuid,
+		v1.USERTOTOPIC_TOPIC_LIST+d.TopicUuid,
+		v1.USERTOTOPIC_USER_LIST+d.UserId,
+		v1.USERTOTOPIC_USER_TOTAL+d.UserId,
+	)
 	v1.SendResponse(c, errmsg.SUCCSE, nil)
 }

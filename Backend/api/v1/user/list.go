@@ -3,13 +3,15 @@ package user
 import (
 	v1 "betxin/api/v1"
 	"betxin/model"
+	"betxin/utils/convert"
 	"betxin/utils/errmsg"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 )
 
 type ListResponse struct {
-	TotalCount int              `json:"totalCount"`
+	TotalCount int          `json:"totalCount"`
 	List       []model.User `json:"list"`
 }
 
@@ -28,29 +30,52 @@ type ListRequest struct {
 // @Success 200 {object} category.ListResponse "{"code":200,"message":"OK","data":{"totalCount":1,"list":[]}"
 // @Router /v1/category [get]
 func ListCategories(c *gin.Context) {
-	var r ListRequest
-	if err := c.ShouldBindJSON(&r); err != nil {
-		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
-		return
-	}
-	switch {
-	case r.Offset >= 100:
-		r.Offset = 100
-	case r.Limit <= 0:
-		r.Limit = 10
-	}
+	var err error
+	var data []model.User
+	var code int
+	var total int
+	var users string
 
-	if r.Limit == 0 {
-		r.Limit = 10
-	}
+	total, _ = v1.Redis().Get(v1.USER_TOTAL).Int()
+	users, err = v1.Redis().Get(v1.USER_LIST).Result()
+	convert.Unmarshal(users, &data)
+	if err == redis.Nil {
+		var r ListRequest
+		if err := c.ShouldBindJSON(&r); err != nil {
+			v1.SendResponse(c, errmsg.ERROR_BIND, nil)
+			return
+		}
+		switch {
+		case r.Offset >= 100:
+			r.Offset = 100
+		case r.Limit <= 0:
+			r.Limit = 10
+		}
 
-	data, total, code := model.ListUser(r.Offset, r.Limit)
-	if code != errmsg.SUCCSE {
-		v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
+		if r.Limit == 0 {
+			r.Limit = 10
+		}
+
+		data, total, code = model.ListUser(r.Offset, r.Limit)
+		if code != errmsg.SUCCSE {
+			v1.SendResponse(c, errmsg.ERROR, nil)
+			return
+		}
+		//
+		users = convert.Marshal(&data)
+		v1.Redis().Set(v1.USER_TOTAL, total, v1.REDISEXPIRE)
+		v1.Redis().Set(v1.USER_LIST, users, v1.REDISEXPIRE)
+		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+			TotalCount: total,
+			List:       data,
+		})
+	} else if err != nil {
+		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
+	} else {
+		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+			TotalCount: total,
+			List:       data,
+		})
 	}
-	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
-		TotalCount: total,
-		List:       data,
-	})
 }

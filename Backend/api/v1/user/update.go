@@ -26,5 +26,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
+	v1.Redis().DelKeys(v1.USER_INFO+userId, v1.USER_LIST, v1.USER_TOTAL)
+
 	v1.SendResponse(c, errmsg.SUCCSE, userId)
 }

@@ -33,10 +33,14 @@ type Topic struct {
 }
 
 func (t *Topic) BeforeCreate(tx *gorm.DB) error {
+	t.Uuid = uuid.NewV4()
+	return nil
+}
+
+func (t *Topic) BeforeUpdate(tx *gorm.DB) error {
 	if t.IsStop == 1 {
 		return errors.New("话题已经停止")
 	}
-	t.Uuid = uuid.NewV4()
 	return nil
 }
 
@@ -44,6 +48,14 @@ func CheckTopic(title string) int {
 	var topic Topic
 	db.Select("uuid").Where("title = ?", title).First(&topic)
 	if topic.Intro != "" {
+		return errmsg.ERROR
+	}
+	return errmsg.SUCCSE
+}
+
+// 将某个话题停止
+func StopTopic(uuid uuid.UUID) int {
+	if err := db.Model(&Topic{}).Where("uuid = ?", uuid).Update("is_stop", 1).Error; err != nil {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE
@@ -73,7 +85,7 @@ func GetTopicById(uuid uuid.UUID) (Topic, int) {
 	return topic, errmsg.SUCCSE
 }
 
-// 创建新标签
+// 创建新话题
 func CreateTopic(data *Topic) int {
 	if err := db.Create(data).Error; err != nil {
 		return errmsg.ERROR
@@ -89,7 +101,7 @@ func DeleteTopic(id int) int {
 	return errmsg.SUCCSE
 }
 
-func UpdateTopic(data *Topic) int {
+func UpdateTopic(uuid uuid.UUID, data *Topic) int {
 	tx := db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -100,14 +112,16 @@ func UpdateTopic(data *Topic) int {
 		return errmsg.ERROR
 	}
 
-	// 锁住指定 id 的 User 记录
-	if err := tx.Set("gorm:query_option", "FOR UPDATE").Last(&Topic{}, data.Uuid).Error; err != nil {
+	// 锁住指定 id 记录
+	if err := tx.Set("gorm:query_option", "FOR UPDATE").Last(&Topic{}, uuid).Error; err != nil {
 		tx.Rollback()
 		return errmsg.ERROR
 	}
 
 	var maps = make(map[string]interface{})
+	maps["cid"] = data.Cid
 	maps["Intro"] = data.Intro
+	maps["title"] = data.Title
 	maps["Content"] = data.Content
 	maps["CollectCount"] = data.CollectCount
 	maps["YesRatio"] = data.YesRatio
@@ -115,7 +129,15 @@ func UpdateTopic(data *Topic) int {
 	maps["YesRatioPrice"] = data.YesRatioPrice
 	maps["NoRatioPrice"] = data.NoRatioPrice
 	maps["TotalPrice"] = data.TotalPrice
-	if err := db.Model(&UserToTopic{}).Where("Id = ?", data.Uuid).Updates(maps).Error; err != nil {
+
+	// var topic Topic
+	// if err := db.Where("uuid = ?", uuid).Model(&Topic{}).First(&topic).Error; err != nil || topic.IsStop == 1 {
+	// 	fmt.Println("话题已经停止")
+	// 	tx.Rollback()
+	// 	return errmsg.ERROR
+	// }
+
+	if err := db.Model(&Topic{}).Where("uuid = ?", uuid).Updates(maps).Error; err != nil {
 		return errmsg.ERROR
 	}
 	if err := tx.Commit().Error; err != nil {
@@ -124,7 +146,7 @@ func UpdateTopic(data *Topic) int {
 	return errmsg.SUCCSE
 }
 
-// GetArt 查询文章列表
+// GetArt 查询话题列表
 func ListTopics(offset int, limit int) ([]Topic, int, int) {
 	var topicList []Topic
 	var err error

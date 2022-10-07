@@ -3,13 +3,11 @@ package category
 import (
 	v1 "betxin/api/v1"
 	"betxin/model"
+	"betxin/utils/convert"
 	"betxin/utils/errmsg"
-	"encoding/json"
-	"log"
-	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 )
 
 // @Summary 用分类id获取分类
@@ -21,19 +19,35 @@ import (
 // @Success 200 {object} model.Category "{"code":200,"message":"OK","data":{}}"
 // @Router /v1/category/{id} [get]
 func GetCategoryInfo(c *gin.Context) {
-	categoryId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		log.Println("获取参数id错误")
-	}
+	id := c.Param("id")
+	var data model.Category
+	var code int
+	var category string
+	var err error
 
-	category, code := model.GetCategoryById(categoryId)
-	if code != errmsg.SUCCSE {
+	category, err = v1.Redis().Get(v1.CATEGORY_GET + id).Result()
+	convert.Unmarshal(category, &data)
+	if err == redis.Nil {
+
+		data, code = model.GetCategoryById(convert.StrToNum(id))
+		if code != errmsg.SUCCSE {
+			v1.SendResponse(c, errmsg.ERROR, nil)
+			return
+		}
+		// 将数据存入redis
+		category = convert.Marshal(&data)
+		v1.Redis().Set(v1.CATEGORY_GET+id, category, v1.REDISEXPIRE)
+
+		v1.SendResponse(c, errmsg.SUCCSE, model.Category{
+			Id:           data.Id,
+			CategoryName: data.CategoryName,
+		})
+	} else if err != nil {
 		v1.SendResponse(c, errmsg.ERROR, nil)
-		return
+	} else {
+		v1.SendResponse(c, errmsg.SUCCSE, model.Category{
+			Id:           data.Id,
+			CategoryName: data.CategoryName,
+		})
 	}
-
-	a, _ := json.Marshal(category)
-	v1.Redis().Set("category"+c.Param("id"), string(a), time.Hour*2)
-
-	v1.SendResponse(c, errmsg.SUCCSE, category)
 }

@@ -6,15 +6,24 @@ import (
 	"betxin/utils/errmsg"
 
 	"github.com/gin-gonic/gin"
+	uuid "github.com/satori/go.uuid"
 )
 
 func UpdateTopic(c *gin.Context) {
-	var data model.Topic
-	_ = c.ShouldBindJSON(&data)
+	id := c.Param("id")
+	var topic model.Topic
+	if err := c.ShouldBindJSON(&topic); err != nil {
+		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
+	}
 
-	if code := model.UpdateTopic(&data); code != errmsg.SUCCSE {
+	uuid, _ := uuid.FromString(id)
+	if code := model.UpdateTopic(uuid, &topic); code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR_UPDATE_TOPIC, nil)
 		return
 	}
-	v1.SendResponse(c, errmsg.SUCCSE, data)
+
+	// Delete redis store
+	v1.Redis().DelKeys(v1.TOPIC_TOTAL, v1.TOPIC_LIST, v1.TOPIC_GET+id)
+
+	v1.SendResponse(c, errmsg.SUCCSE, id)
 }

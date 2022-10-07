@@ -33,5 +33,4 @@ func main() {
 	// dailycurrency.DailyCurrency(ctx)
 
 	router.InitRouter()
-
 }

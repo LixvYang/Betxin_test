@@ -83,7 +83,7 @@ func UpdateUser(user_id string, data *User) int {
 // GetUserByName gets an user by the username.
 func GetUserByName(full_name string) (*User, int) {
 	var user *User
-	if err := db.Where("full_name = ?", full_name).First(&user).Error; err != nil {
+	if err := db.Where("full_name LIKE ?", full_name+"%").First(&user).Error; err != nil {
 		return nil, errmsg.ERROR
 	}
 	return user, errmsg.SUCCSE

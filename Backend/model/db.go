@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"betxin/utils"
 
@@ -79,6 +80,6 @@ func InitDb() {
 	// SetMaxOpenCons 设置数据库的最大连接数量。
 	// SetConnMaxLifetiment 设置连接的最大可复用时间
 	sqlDB.SetMaxIdleConns(1000)
-	sqlDB.SetMaxOpenConns(100000)
-	sqlDB.SetConnMaxLifetime(-1)
+	sqlDB.SetMaxOpenConns(5000)
+	sqlDB.SetConnMaxLifetime(time.Hour / 2)
 }

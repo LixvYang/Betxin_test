@@ -39,22 +39,47 @@ func (r *RedisClient) Set(key string, value interface{}, expiration time.Duratio
 	r.redisClient.Set(r.ctx, key, value, expiration)
 }
 
-func (r *RedisClient) Del(key string)  {
+func (r *RedisClient) DelKeys(keys ...string) {
+	for i := 0; i < len(keys); i++ {
+		r.Del(keys[i])
+	}
+}
+
+func (r *RedisClient) Del(key string) {
+	if !r.Exists(key) {
+		return
+	}
 	r.redisClient.Del(r.ctx, key)
 }
 
-func (r *RedisClient) Increment(key string) {
-	r.redisClient.Incr(r.ctx, key)
-}
+// func (r *RedisClient) Increment(key string) {
+// 	r.redisClient.Incr(r.ctx, key)
+// }
 
-func (r *RedisClient) SAdd(key string, members interface{}) {
-	r.redisClient.SAdd(r.ctx, key, members)
-}
+// func (r *RedisClient) SAdd(key string, members interface{}) {
+// 	r.redisClient.SAdd(r.ctx, key, members)
+// }
 
-func (r *RedisClient) SRem(key string, members interface{}) {
-	r.redisClient.SRem(r.ctx, key, members)
-}
+// func (r *RedisClient) SRem(key string, members interface{}) {
+// 	r.redisClient.SRem(r.ctx, key, members)
+// }
 
-func (r *RedisClient) Smembers(key string) *redis.StringSliceCmd {
-	return r.redisClient.SMembers(r.ctx, key)
-}
+// func (r *RedisClient) Smembers(key string) *redis.StringSliceCmd {
+// 	return r.redisClient.SMembers(r.ctx, key)
+// }
+
+// func (r *RedisClient) HSet(key string, expiration time.Duration, values ...interface{}) {
+// 	if r.Exists(key) {
+// 		r.redisClient.Expire(r.ctx, key, expiration)
+// 		return
+// 	}
+// 	r.redisClient.HSet(r.ctx, key, values...)
+// }
+
+// func (r *RedisClient) HGet(key string, field ...string) *redis.SliceCmd {
+// 	return r.redisClient.MGet(r.ctx, field...)
+// }
+
+// func (r *RedisClient) HMGet(key string, field ...string) *redis.SliceCmd {
+// 	return r.redisClient.HMGet(r.ctx, key, field...)
+// }

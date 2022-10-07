@@ -9,7 +9,7 @@ import (
 
 type UserToTopic struct {
 	Id            int             `gorm:"type:int;primaryKey;autoIncrement" json:"id"`
-	TopicUuid     string          `gorm:"type:varchar(36);not null" json:"tid"`
+	TopicUuid     string          `gorm:"type:varchar(36);not null;index:useid_topicid_index" json:"tid"`
 	UserId        string          `gorm:"type:varchar(50);not null;index:useid_topicid_index" json:"user_id"`
 	YesRatioPrice decimal.Decimal `gorm:"type:decimal(10,10);not null;" json:"yes_ratio_price"`
 	NoRatioPrice  decimal.Decimal `gorm:"type:decimal(10,10);not null;" json:"no_ratio_price"`

@@ -3,11 +3,8 @@ package category
 import (
 	v1 "betxin/api/v1"
 	"betxin/model"
+	"betxin/utils/convert"
 	"betxin/utils/errmsg"
-	"encoding/json"
-	"fmt"
-	"log"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -39,9 +36,9 @@ func ListCategories(c *gin.Context) {
 	var err error
 	var data []model.Category
 
-	total, _ = v1.Redis().Get("categoryiesTotal").Int()
-	categoryies, err = v1.Redis().Get("categoryies").Result()
-	_ = json.Unmarshal([]byte(categoryies), &data)
+	total, _ = v1.Redis().Get(v1.CATEGORY_TOTAL).Int()
+	categoryies, err = v1.Redis().Get(v1.CATEGORY_LIST).Result()
+	convert.Unmarshal(categoryies, &data)
 	if err == redis.Nil {
 		var r ListRequest
 		if err := c.ShouldBindJSON(&r); err != nil {
@@ -64,20 +61,19 @@ func ListCategories(c *gin.Context) {
 			v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
 			return
 		}
-		categoryies, _ := json.Marshal(data)
-		fmt.Println("设值")
-		v1.Redis().Set("categoryiesTotal", total, time.Hour*12)
-		v1.Redis().Set("categoryies", categoryies, time.Hour*12)
+
+		//
+		categoryies = convert.Marshal(&data)
+		v1.Redis().Set(v1.CATEGORY_TOTAL, total, v1.REDISEXPIRE)
+		v1.Redis().Set(v1.CATEGORY_LIST, categoryies, v1.REDISEXPIRE)
 		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
 			TotalCount: total,
 			List:       data,
 		})
 	} else if err != nil {
-		log.Panicln(err)
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	} else {
-		fmt.Println("从redis拿数据")
 		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
 			TotalCount: total,
 			List:       data,

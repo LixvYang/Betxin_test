@@ -10,7 +10,7 @@ import (
 )
 
 type DeleteRequest struct {
-	UserId  string `json:"user_id"`
+	UserId    string    `json:"user_id"`
 	TopicUuid uuid.UUID `json:"topic_uuid"`
 }
 
@@ -25,5 +25,7 @@ func DeleteCollect(c *gin.Context) {
 		v1.SendResponse(c, errmsg.ERROR_DELETE_CATENAME, nil)
 		return
 	}
+	v1.Redis().DelKeys(v1.COLLECT_GET_USER_LIST+r.UserId, v1.COLLECT_GET_USER_TOTAL+r.UserId, v1.COLLECT_LIST, v1.COLLECT_TOTAL)
+
 	v1.SendResponse(c, errmsg.SUCCSE, nil)
 }
