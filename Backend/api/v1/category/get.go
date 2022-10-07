@@ -4,8 +4,10 @@ import (
 	v1 "betxin/api/v1"
 	"betxin/model"
 	"betxin/utils/errmsg"
+	"encoding/json"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,10 +25,15 @@ func GetCategoryInfo(c *gin.Context) {
 	if err != nil {
 		log.Println("获取参数id错误")
 	}
+
 	category, code := model.GetCategoryById(categoryId)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
+
+	a, _ := json.Marshal(category)
+	v1.Redis().Set("category"+c.Param("id"), string(a), time.Hour*2)
+
 	v1.SendResponse(c, errmsg.SUCCSE, category)
 }

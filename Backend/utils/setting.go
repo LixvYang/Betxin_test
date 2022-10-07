@@ -31,6 +31,10 @@ var (
 	Bucket     string
 	QiniuSever string
 
+	RedisHost     string
+	RedisPort     string
+	RedisPassword string
+
 	PUSD  string
 	BTC   string
 	BOX   string
@@ -79,6 +83,7 @@ func init() {
 	LoadServer(f)
 	LoadData(f)
 	LoadMixinBot(f)
+	LoadRedis(f)
 	LoadQiniu(f)
 	LoadMixinAssetId(f)
 }
@@ -96,6 +101,12 @@ func LoadData(file *ini.File) {
 	DbUser = file.Section("database").Key("DbUser").MustString("root")
 	DbPassWord = file.Section("database").Key("DbPassWord").MustString("")
 	DbName = file.Section("database").Key("DbName").MustString("")
+}
+
+func LoadRedis(file *ini.File) {
+	RedisHost = file.Section("redis").Key("RedisHost").MustString("")
+	RedisPort = file.Section("redis").Key("RedisPort").MustString("")
+	RedisPassword = file.Section("redis").Key("RedisPassword").MustString("")
 }
 
 func LoadQiniu(file *ini.File) {

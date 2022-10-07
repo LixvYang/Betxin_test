@@ -19,10 +19,17 @@ import (
 // @Router /v1/category/{id} [delete]
 func DeleteCategory(c *gin.Context) {
 	CategoryId, _ := strconv.Atoi(c.Param("id"))
+	
 	code := model.DeleteCategory(CategoryId)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR_DELETE_CATENAME, nil)
 		return
+	}
+
+	// Delete redis store 
+	if v1.Redis().Exists("categoryies") || v1.Redis().Exists("categoryiesTotal") {
+		v1.Redis().Del("categoryiesTotal")
+		v1.Redis().Del("categoryies")
 	}
 	v1.SendResponse(c, errmsg.SUCCSE, nil)
 }

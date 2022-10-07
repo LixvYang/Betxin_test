@@ -28,10 +28,16 @@ func CreateCatrgory(c *gin.Context) {
 		v1.SendResponse(c, errmsg.ERROR_CATENAME_USED, nil)
 		return
 	}
-	
+
 	if code = model.CreateCatrgory(&r); code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
+	}
+
+	// Delete redis store 
+	if v1.Redis().Exists("categoryies") || v1.Redis().Exists("categoryiesTotal") {
+		v1.Redis().Del("categoryiesTotal")
+		v1.Redis().Del("categoryies")
 	}
 
 	v1.SendResponse(c, errmsg.SUCCSE, nil)

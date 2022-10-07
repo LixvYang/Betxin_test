@@ -6,7 +6,6 @@ import (
 
 	"betxin/utils"
 
-	"github.com/go-redis/redis"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -14,8 +13,7 @@ import (
 )
 
 var (
-	redisClient *redis.Client
-	db          *gorm.DB
+	db *gorm.DB
 )
 
 func InitDb() {
@@ -44,17 +42,6 @@ func InitDb() {
 		log.Panic("连接数据库失败,请检查参数:", err)
 	}
 
-	redisClient = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "123456",
-		DB:       0,
-	})
-	ping, err := redisClient.Ping().Result()
-	if err != nil {
-		log.Fatalln(err)
-		return
-	}
-	fmt.Println(ping)
 	// 如果存在表则删除（删除时会忽略、删除外键约束)
 	// db.Migrator().DropTable(&User{})
 	// db.Migrator().DropTable(&Category{})
@@ -70,21 +57,22 @@ func InitDb() {
 	// db.Migrator().DropTable(&UserToTopic{})
 	// db.Migrator().DropTable(&Administrator{})
 
+	// redist := redis.NewRedisClient()
 	// 迁移数据表，在没有数据表结构变更时候，建议注释不执行
 	db.AutoMigrate(
-		// &User{},
-		// &Category{},
-		&Topic{},
-		// &Collect{},
-		// &Bonuse{},
-		// &Currency{},
-		// &MixinMessage{},
-		// &SwapOrder{},
-		// &MixinNetworkSnapshot{},
-		// &UserAuthorization{},
-		// &MixinOrder{},
-		&UserToTopic{},
-		// &Administrator{},
+	// &User{},
+	// &Category{},
+	// &Topic{},
+	// &Collect{},
+	// &Bonuse{},
+	// &Currency{},
+	// &MixinMessage{},
+	// &SwapOrder{},
+	// &MixinNetworkSnapshot{},
+	// &UserAuthorization{},
+	// &MixinOrder{},
+	// &UserToTopic{},
+	// &Administrator{},
 	)
 	sqlDB, _ := db.DB()
 	// SetMaxIdleCons 设置连接池中的最大闲置连接数。

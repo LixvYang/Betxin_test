@@ -2,6 +2,7 @@ package model
 
 import (
 	"betxin/utils/errmsg"
+	"errors"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -25,12 +26,16 @@ type Topic struct {
 	TotalPrice    decimal.Decimal `gorm:"type:decimal(32,8);default 0;" json:"total_price"`
 	ReadCount     int             `gorm:"type:int;not null;default:0" json:"read_count"`
 	ImgUrl        string          `gorm:"varchar(255);default null;" json:"img_url"`
+	IsStop        int             `gorm:"type:int;default 0;" json:"is_stop"`
 
 	CreatedAt time.Time `gorm:"type:datetime(3)" json:"created_at"`
 	UpdatedAt time.Time `gorm:"type:datetime(3)" json:"updated_at"`
 }
 
 func (t *Topic) BeforeCreate(tx *gorm.DB) error {
+	if t.IsStop == 1 {
+		return errors.New("话题已经停止")
+	}
 	t.Uuid = uuid.NewV4()
 	return nil
 }

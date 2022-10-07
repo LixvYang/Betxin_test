@@ -2,10 +2,14 @@ package v1
 
 import (
 	"betxin/utils/errmsg"
+	"betxin/utils/redis"
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
+
+var ctx context.Context
 
 type Response struct {
 	Code    int         `json:"code"`
@@ -20,4 +24,9 @@ func SendResponse(c *gin.Context, code int, data interface{}) {
 		Message: message,
 		Data:    data,
 	})
+}
+
+func Redis() *redis.RedisClient {
+	ctx = context.Background()
+	return redis.NewRedisClient(ctx)
 }

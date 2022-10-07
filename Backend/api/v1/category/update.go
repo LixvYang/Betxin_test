@@ -16,15 +16,23 @@ func UpdateCategory(c *gin.Context) {
 	if err := c.ShouldBindJSON(&cate); err != nil {
 		log.Panicln(err)
 	}
+
 	code := model.CheckCategory(cate.CategoryName)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR_CATENAME_USED, nil)
 		return
 	}
+	
 	code = model.UpdateCate(id, cate.CategoryName)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR_UPDATE_CATENAME, nil)
 		return
+	}
+
+	// Delete redis store
+	if v1.Redis().Exists("categoryies") || v1.Redis().Exists("categoryiesTotal") {
+		v1.Redis().Del("categoryiesTotal")
+		v1.Redis().Del("categoryies")
 	}
 
 	v1.SendResponse(c, errmsg.SUCCSE, cate.CategoryName)

@@ -1,11 +1,7 @@
 package usertotopic
 
 import (
-	v1 "betxin/api/v1"
 	"betxin/model"
-	"betxin/utils/errmsg"
-
-	"github.com/gin-gonic/gin"
 )
 
 type ListResponse struct {
@@ -20,47 +16,59 @@ type ListRequest struct {
 	Limit   int    `json:"limit"`
 }
 
-func ListUserToTopics(c *gin.Context) {
-	var r ListRequest
-	if err := c.ShouldBindJSON(&r); err != nil {
-		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
-		return
-	}
-	switch {
-	case r.Offset >= 100:
-		r.Offset = 100
-	case r.Limit <= 0:
-		r.Limit = 10
-	}
+// func ListUserToTopics(c *gin.Context) {
+// 	var data []model.UserToTopic
+// 	var code int
+// 	var total int
+// 	val, err := v1.Redis().RCGet("usertotopics").Result()
 
-	if r.Limit == 0 {
-		r.Limit = 10
-	}
+// 	if err == redis.Nil {
+// 		var r ListRequest
+// 		if err := c.ShouldBindJSON(&r); err != nil {
+// 			v1.SendResponse(c, errmsg.ERROR_BIND, nil)
+// 			return
+// 		}
+// 		switch {
+// 		case r.Offset >= 100:
+// 			r.Offset = 100
+// 		case r.Limit <= 0:
+// 			r.Limit = 10
+// 		}
 
-	var data []model.UserToTopic
-	var code int
-	var total int
-	if r.UserId == "" && r.TopicId == "" {
-		data, total, code = model.ListUserToTopics(r.Offset, r.Limit)
-		if code != errmsg.SUCCSE {
-			v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
-			return
-		}
-	} else if r.UserId != "" && r.TopicId == "" {
-		data, total, code = model.ListUserToTopicsByUserId(r.UserId, r.Offset, r.Limit)
-		if code != errmsg.SUCCSE {
-			v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
-			return
-		}
-	} else if r.UserId == "" && r.TopicId != "" {
-		data, total, code = model.ListUserToTopicsByTopicId(r.UserId, r.Offset, r.Limit)
-		if code != errmsg.SUCCSE {
-			v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
-			return
-		}
-	}
-	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
-		TotalCount: total,
-		List:       data,
-	})
-}
+// 		if r.Limit == 0 {
+// 			r.Limit = 10
+// 		}
+
+// 		if r.UserId == "" && r.TopicId == "" {
+// 			data, total, code = model.ListUserToTopics(r.Offset, r.Limit)
+// 			if code != errmsg.SUCCSE {
+// 				v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
+// 				return
+// 			}
+// 		} else if r.UserId != "" && r.TopicId == "" {
+// 			data, total, code = model.ListUserToTopicsByUserId(r.UserId, r.Offset, r.Limit)
+// 			if code != errmsg.SUCCSE {
+// 				v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
+// 				return
+// 			}
+// 		} else if r.UserId == "" && r.TopicId != "" {
+// 			data, total, code = model.ListUserToTopicsByTopicId(r.UserId, r.Offset, r.Limit)
+// 			if code != errmsg.SUCCSE {
+// 				v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
+// 				return
+// 			}
+// 		}
+// 		v1.Redis().RCSet("usertotopics", data, 0)
+// 		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+// 			TotalCount: total,
+// 			List:       data,
+// 		})
+// 	} else if err != nil {
+// 		v1.SendResponse(c, errmsg.ERROR, nil)
+// 	} else {
+// 		log.Println("Get usertotopic from Redis")
+// 		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+// 			TotalCount: total,
+// 		})
+// 	}
+// }

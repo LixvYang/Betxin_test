@@ -12,7 +12,7 @@ import (
 
 func Logger() gin.HandlerFunc {
 	filePath := "log/log"
-	linkName := "latest_log.log"
+	// linkName := "latest_log.log"
 
 	scr, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
@@ -30,7 +30,7 @@ func Logger() gin.HandlerFunc {
 		retalog.WithMaxAge(7*24*time.Hour),
 		// 设置日志切割时间间隔(1天)
 		retalog.WithRotationTime(24*time.Hour),
-		retalog.WithLinkName(linkName),
+		// retalog.WithLinkName(linkName),
 	)
 
 	writeMap := lfshook.WriterMap{
