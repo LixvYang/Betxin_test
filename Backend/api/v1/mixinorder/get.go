@@ -9,7 +9,7 @@ import (
 )
 
 func GetMixinOrderById(c *gin.Context) {
-	traceId := c.Param("id")
+	traceId := c.Param("traceId")
 	mixinOrder, code := model.GetMixinOrderByTraceId(traceId)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)

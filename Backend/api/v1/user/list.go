@@ -29,7 +29,7 @@ type ListRequest struct {
 // @Param   limit      query    int     true      "Limit"
 // @Success 200 {object} category.ListResponse "{"code":200,"message":"OK","data":{"totalCount":1,"list":[]}"
 // @Router /v1/category [get]
-func ListCategories(c *gin.Context) {
+func ListUser(c *gin.Context) {
 	var err error
 	var data []model.User
 	var code int

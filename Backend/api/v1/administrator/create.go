@@ -44,5 +44,5 @@ func CreateAdministrator(c *gin.Context) {
 		return
 	}
 	
-	v1.SendResponse(c, errmsg.SUCCSE, r.ID)
+	v1.SendResponse(c, errmsg.SUCCSE, r.Id)
 }

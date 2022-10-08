@@ -62,7 +62,7 @@ func setToken(c *gin.Context, user model.Administrator) {
 	}
 
 	v1.SendResponse(c, errmsg.SUCCSE, &LoginResponse{
-		Id:       int(user.ID),
+		Id:       user.Id,
 		Token:    token,
 		UserName: user.Username,
 	})

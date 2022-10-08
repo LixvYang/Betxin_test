@@ -72,23 +72,6 @@ func ListUserToTopics(c *gin.Context) {
 			List:       data,
 		})
 	}
-
-	// if r.UserId == "" && r.TopicId == "" {
-
-	// } else if r.UserId != "" && r.TopicId == "" {
-	// 	data, total, code = model.ListUserToTopicsByUserId(r.UserId, r.Offset, r.Limit)
-	// 	if code != errmsg.SUCCSE {
-	// 		v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
-	// 		return
-	// 	}
-	// } else if r.UserId == "" && r.TopicId != "" {
-	// 	data, total, code = model.ListUserToTopicsByTopicId(r.UserId, r.Offset, r.Limit)
-	// 	if code != errmsg.SUCCSE {
-	// 		v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
-	// 		return
-	// 	}
-	// }
-
 }
 
 func ListUserToTopicsByUserId(c *gin.Context) {

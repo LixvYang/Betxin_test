@@ -38,7 +38,7 @@ func GetTopicInfoById(c *gin.Context) {
 		topic = convert.Marshal(&data)
 		v1.Redis().Set(v1.TOPIC_GET+id, topic, v1.REDISEXPIRE)
 		v1.SendResponse(c, errmsg.SUCCSE, data)
-		
+
 	} else if err != nil {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 	} else {

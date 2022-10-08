@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var ctx context.Context
+var ctx = context.Background()
 
 const (
 	REDISEXPIRE = time.Hour * 2
@@ -40,11 +40,10 @@ const (
 	USERTOTOPIC_TOPIC_LIST  = "usertotopic_topic_list_"
 
 	//
-	USER_LIST = "user_list"
+	USER_LIST  = "user_list"
 	USER_TOTAL = "user_total"
-	// 
+	//
 	USER_INFO = "user_info_"
-
 )
 
 type Response struct {
@@ -63,6 +62,5 @@ func SendResponse(c *gin.Context, code int, data interface{}) {
 }
 
 func Redis() *redis.RedisClient {
-	ctx = context.Background()
 	return redis.NewRedisClient(ctx)
 }

@@ -9,14 +9,14 @@ import (
 )
 
 func GetMixinNetworkSnapshot(c *gin.Context) {
-	trace_id := c.Param("trace_id")
+	traceId := c.Param("traceId")
 
-	if code := model.CheckMixinNetworkSnapshot(trace_id); code != errmsg.SUCCSE {
+	if code := model.CheckMixinNetworkSnapshot(traceId); code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
 
-	mixinNetworkSnapshot, code := model.GetMixinNetworkSnapshot(trace_id)
+	mixinNetworkSnapshot, code := model.GetMixinNetworkSnapshot(traceId)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return

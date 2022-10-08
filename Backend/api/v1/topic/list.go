@@ -89,7 +89,7 @@ func GetTopicByCid(c *gin.Context) {
 	topics, err = v1.Redis().Get(v1.TOPIC_LIST_FROMCATE + cid).Result()
 	convert.Unmarshal(topics, &data)
 	if err == redis.Nil {
-		var r TitleListRequest
+		var r ListRequest
 		if err = c.ShouldBindJSON(&r); err != nil {
 			v1.SendResponse(c, errmsg.ERROR_BIND, nil)
 			return
@@ -113,9 +113,8 @@ func GetTopicByCid(c *gin.Context) {
 
 		//
 		topics = convert.Marshal(&data)
-		fmt.Println("设值")
 		v1.Redis().Set(v1.TOPIC_LIST_FROMCATE_TOTAL+cid, total, v1.REDISEXPIRE)
-		v1.Redis().Set(v1.TOPIC_LIST_FROMCATE + cid, topics+cid, v1.REDISEXPIRE)
+		v1.Redis().Set(v1.TOPIC_LIST_FROMCATE+cid, topics+cid, v1.REDISEXPIRE)
 
 		v1.SendResponse(c, errmsg.SUCCSE, &ListResponse{
 			TotalCount: total,
@@ -125,7 +124,6 @@ func GetTopicByCid(c *gin.Context) {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	} else {
-		fmt.Println("从redis拿数据")
 		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
 			TotalCount: total,
 			List:       data,

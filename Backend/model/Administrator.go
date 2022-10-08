@@ -2,20 +2,24 @@ package model
 
 import (
 	"betxin/utils/errmsg"
+	"time"
 
 	"gorm.io/gorm"
 )
 
 type Administrator struct {
-	gorm.Model
-	Username string `gorm:"type:varchar(20);not null " json:"username" validate:"required,min=4,max=12" label:"用户名"`
-	Password string `gorm:"type:varchar(500);not null" json:"password" validate:"required,min=6,max=120" label:"密码"`
+	Id        int       `gorm:"primaryKey;autoIncrement" json:"id"`
+	Username  string    `gorm:"type:varchar(20);not null " json:"username" validate:"required,min=4,max=12" label:"用户名"`
+	Password  string    `gorm:"type:varchar(500);not null" json:"password" validate:"required,min=6,max=120" label:"密码"`
+	CreatedAt time.Time `gorm:"type:datetime(3); not null" json:"created_at"`
+	UpdatedAt time.Time `gorm:"type:datetime(3); not null" json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 }
 
 func CheckAdministrator(username string) int {
 	var admin Administrator
 	db.Select("id").Where("username = ?", username).First(&admin)
-	if admin.ID > 0 {
+	if admin.Id > 0 {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE
@@ -32,8 +36,7 @@ func CreateAdministrator(data *Administrator) int {
 
 // Delete 管理员
 func DeleteAdministrator(id int) int {
-	var user User
-	if err := db.Where("id = ? ", id).Delete(&user).Error; err != nil {
+	if err := db.Where("id = ? ", id).Delete(&Administrator{}).Error; err != nil {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE
@@ -77,7 +80,7 @@ func UpdateAdministrator(id int, admin *Administrator) int {
 	maps["username"] = admin.Username
 	maps["password"] = admin.Password
 
-	if err := db.Model(&Category{}).Where("id = ? ", id).Updates(maps).Error; err != nil {
+	if err := db.Model(&Administrator{}).Where("id = ? ", id).Updates(maps).Error; err != nil {
 		return errmsg.ERROR
 	}
 	if err := tx.Commit().Error; err != nil {
@@ -91,7 +94,7 @@ func CheckLogin(username string, password string) (Administrator, int) {
 	var user Administrator
 
 	db.Where("username = ? AND password = ?", username, password).First(&user)
-	if user.ID == 0 {
+	if user.Id == 0 {
 		return user, errmsg.ERROR_USER_NOT_EXIST
 	}
 

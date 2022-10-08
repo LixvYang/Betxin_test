@@ -73,7 +73,7 @@ func InitDb() {
 	// &UserAuthorization{},
 	// &MixinOrder{},
 	// &UserToTopic{},
-	// &Administrator{},
+	&Administrator{},
 	)
 	sqlDB, _ := db.DB()
 	// SetMaxIdleCons 设置连接池中的最大闲置连接数。

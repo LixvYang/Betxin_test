@@ -61,6 +61,7 @@ func sendTopCreatedAtToChannel(ctx context.Context, stats *Stats, client *mixin.
 	snapshots, err := getTopHundredCreated(client, ctx)
 	if err != nil {
 		log.Printf("getTopHundredCreated error")
+		log.Printf(err.Error())
 		return
 	}
 	for _, snapshot := range snapshots {
@@ -78,7 +79,7 @@ func Worker(ctx context.Context, client *mixin.Client) error {
 		return nil
 	}
 	stats := &Stats{createdAt}
-	gocron.Every(1).Second().Do(sendTopCreatedAtToChannel, ctx, stats, client)
+	gocron.Every(2).Second().Do(sendTopCreatedAtToChannel, ctx, stats, client)
 	<-gocron.Start()
 	return nil
 }

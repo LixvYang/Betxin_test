@@ -2,15 +2,17 @@ package model
 
 import (
 	"betxin/utils/errmsg"
+	"time"
 
 	uuid "github.com/satori/go.uuid"
-	"gorm.io/gorm"
 )
 
 type Collect struct {
-	gorm.Model
-	UserId  string    `gorm:"type:varchar(50);not null;index:user_collect_topic" json:"user_id"`
-	TopicId uuid.UUID `gorm:"index:user_collect_topic;type:varchar(36) not null;" json:"topic_id"`
+	Id        int       `gorm:"primaryKey;autoIncrement" json:"id"`
+	CreatedAt time.Time `gorm:"type:datetime(3); not null" json:"created_at"`
+	UpdatedAt time.Time `gorm:"type:datetime(3); not null" json:"updated_at"`
+	UserId    string    `gorm:"type:varchar(50);not null;index:user_collect_topic" json:"user_id"`
+	TopicId   uuid.UUID `gorm:"index:user_collect_topic;type:varchar(36);not null;" json:"topic_id"`
 }
 
 //Create Collect

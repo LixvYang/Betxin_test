@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func DeleteCollect(c *gin.Context) {
-	traceId := c.Param("traceIdd")
+func DeleteSnapshot(c *gin.Context) {
+	traceId := c.Param("traceId")
 	code := model.DeleteMixinNetworkSnapshot(traceId)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)

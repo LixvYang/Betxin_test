@@ -18,7 +18,7 @@ type ListRequest struct {
 	Limit  int `json:"limit"`
 }
 
-func ListMessages(c *gin.Context) {
+func ListMixinOrder(c *gin.Context) {
 	var r ListRequest
 	if err := c.ShouldBindJSON(&r); err != nil {
 		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
