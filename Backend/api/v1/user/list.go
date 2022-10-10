@@ -5,6 +5,7 @@ import (
 	"betxin/model"
 	"betxin/utils/convert"
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -36,8 +37,8 @@ func ListUser(c *gin.Context) {
 	var total int
 	var users string
 
-	total, _ = v1.Redis().Get(v1.USER_TOTAL).Int()
-	users, err = v1.Redis().Get(v1.USER_LIST).Result()
+	total, _ = betxinredis.Get(v1.USER_TOTAL).Int()
+	users, err = betxinredis.Get(v1.USER_LIST).Result()
 	convert.Unmarshal(users, &data)
 	if err == redis.Nil {
 		var r ListRequest
@@ -63,8 +64,8 @@ func ListUser(c *gin.Context) {
 		}
 		//
 		users = convert.Marshal(&data)
-		v1.Redis().Set(v1.USER_TOTAL, total, v1.REDISEXPIRE)
-		v1.Redis().Set(v1.USER_LIST, users, v1.REDISEXPIRE)
+		betxinredis.Set(v1.USER_TOTAL, total, v1.REDISEXPIRE)
+		betxinredis.Set(v1.USER_LIST, users, v1.REDISEXPIRE)
 		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
 			TotalCount: total,
 			List:       data,

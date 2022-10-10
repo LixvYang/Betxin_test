@@ -3,22 +3,28 @@ package user
 import (
 	v1 "betxin/api/v1"
 	"betxin/model"
-	"betxin/utils/convert"
 	"betxin/utils/errmsg"
+	"fmt"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
 func GetUserInfoByUserId(c *gin.Context) {
-	userId := c.Param("userId")
+	fmt.Println("请求到了GetUserInfoByUserId")
+	// userId := c.Param("userId")
+	session := sessions.Default(c)
+	user := session.Get("userId")
+	fmt.Println(user)
+	userId := fmt.Sprintf("%v", user)
 
 	data, code := model.GetUserById(userId)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
-	user := convert.Marshal(&data)
-	v1.Redis().Set(v1.USER_INFO+userId, user, v1.REDISEXPIRE)
+	// user := convert.Marshal(&data)
+	// betxinredis.Set(v1.USER_INFO+userId, user, v1.REDISEXPIRE)
 	v1.SendResponse(c, errmsg.SUCCSE, data)
 }
 

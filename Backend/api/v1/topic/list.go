@@ -5,7 +5,7 @@ import (
 	"betxin/model"
 	"betxin/utils/convert"
 	"betxin/utils/errmsg"
-	"fmt"
+	betxinredis "betxin/utils/redis"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -16,65 +16,100 @@ type ListResponse struct {
 	List       []model.Topic `json:"list"`
 }
 
-type TitleListRequest struct {
-	Offset  int    `json:"offset"`
-	Limit   int    `json:"limit"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
-	Intro   string `json:"intro"`
+type ListRequest struct {
+	Offset int    `json:"offset"`
+	Limit  int    `json:"limit"`
+	Title  string `json:"title"`
+	Cid    string    `json:"cid"`
 }
 
 func ListTopics(c *gin.Context) {
-	var topics string
-	var r TitleListRequest
+	var r ListRequest
 	var data []model.Topic
 	var total int
 	var code int
 	var err error
 
-	total, _ = v1.Redis().Get(v1.TOPIC_TOTAL).Int()
-	topics, err = v1.Redis().Get(v1.TOPIC_LIST).Result()
-	convert.Unmarshal(topics, &data)
-	if err == redis.Nil {
-		if err = c.ShouldBindJSON(&r); err != nil {
-			v1.SendResponse(c, errmsg.ERROR_BIND, nil)
+	if err = c.ShouldBindJSON(&r); err != nil {
+		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
+		return
+	}
+
+	if r.Title == "" && r.Cid == "" {
+		data, total, code = model.ListTopics(r.Offset, r.Limit)
+		if code != errmsg.SUCCSE {
+			v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
 			return
 		}
-		if r.Title == "" && r.Content == "" && r.Intro == "" {
-			data, total, code = model.ListTopics(r.Offset, r.Limit)
-			if code != errmsg.SUCCSE {
-				v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
-				return
-			}
-
-			//
-			topics = convert.Marshal(&data)
-			fmt.Println("设值")
-			v1.Redis().Set(v1.TOPIC_TOTAL, total, v1.REDISEXPIRE)
-			v1.Redis().Set(v1.TOPIC_LIST, topics, v1.REDISEXPIRE)
-		} else {
-			data, total, code = model.SearchTopic(r.Title, r.Content, r.Intro, r.Offset, r.Limit)
-			if code != errmsg.SUCCSE {
-				v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
-				return
-			}
+	} else if r.Title != "" {
+		data, total, code = model.SearchTopic(r.Offset, r.Limit, "title LIKE ?", r.Title+"%")
+		if code != errmsg.SUCCSE {
+			v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
 		}
-
-		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
-			TotalCount: total,
-			List:       data,
-		})
-	} else if err != nil {
-		v1.SendResponse(c, errmsg.ERROR, nil)
-		return
-	} else {
-		fmt.Println("从redis拿数据")
-		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
-			TotalCount: total,
-			List:       data,
-		})
+	} else if r.Cid != "" {
+		data, total, code = model.SearchTopic(r.Offset, r.Limit, "cid = ?", r.Cid)
+		if code != errmsg.SUCCSE {
+			v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
+		}
 	}
+
+	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+		TotalCount: total,
+		List:       data,
+	})
 }
+
+// func ListTopics(c *gin.Context) {
+// 	var topics string
+// 	var r ListRequest
+// 	var data []model.Topic
+// 	var total int
+// 	var code int
+// 	var err error
+
+// 	total, _ = betxinredis.Get(v1.TOPIC_TOTAL).Int()
+// 	topics, err = betxinredis.Get(v1.TOPIC_LIST).Result()
+// 	convert.Unmarshal(topics, &data)
+// 	if err == redis.Nil {
+// 		if err = c.ShouldBindJSON(&r); err != nil {
+// 			v1.SendResponse(c, errmsg.ERROR_BIND, nil)
+// 			return
+// 		}
+// 		if r.Title == "" && r.Content == "" && r.Intro == "" {
+// 			data, total, code = model.ListTopics(r.Offset, r.Limit)
+// 			if code != errmsg.SUCCSE {
+// 				v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
+// 				return
+// 			}
+
+// 			//
+// 			topics = convert.Marshal(&data)
+// 			fmt.Println("设值")
+// 			betxinredis.Set(v1.TOPIC_TOTAL, total, v1.REDISEXPIRE)
+// 			betxinredis.Set(v1.TOPIC_LIST, topics, v1.REDISEXPIRE)
+// 		} else {
+// 			data, total, code = model.SearchTopic(r.Title, r.Content, r.Intro, r.Offset, r.Limit)
+// 			if code != errmsg.SUCCSE {
+// 				v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
+// 				return
+// 			}
+// 		}
+
+// 		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+// 			TotalCount: total,
+// 			List:       data,
+// 		})
+// 	} else if err != nil {
+// 		v1.SendResponse(c, errmsg.ERROR, nil)
+// 		return
+// 	} else {
+// 		fmt.Println("从redis拿数据")
+// 		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+// 			TotalCount: total,
+// 			List:       data,
+// 		})
+// 	}
+// }
 
 // GetTopicByCid 通过种类id获取信息
 func GetTopicByCid(c *gin.Context) {
@@ -85,8 +120,8 @@ func GetTopicByCid(c *gin.Context) {
 	var err error
 
 	cid := c.Param("cid")
-	total, _ = v1.Redis().Get(v1.TOPIC_LIST_FROMCATE_TOTAL + cid).Int()
-	topics, err = v1.Redis().Get(v1.TOPIC_LIST_FROMCATE + cid).Result()
+	total, _ = betxinredis.Get(v1.TOPIC_LIST_FROMCATE_TOTAL + cid).Int()
+	topics, err = betxinredis.Get(v1.TOPIC_LIST_FROMCATE + cid).Result()
 	convert.Unmarshal(topics, &data)
 	if err == redis.Nil {
 		var r ListRequest
@@ -113,8 +148,8 @@ func GetTopicByCid(c *gin.Context) {
 
 		//
 		topics = convert.Marshal(&data)
-		v1.Redis().Set(v1.TOPIC_LIST_FROMCATE_TOTAL+cid, total, v1.REDISEXPIRE)
-		v1.Redis().Set(v1.TOPIC_LIST_FROMCATE+cid, topics+cid, v1.REDISEXPIRE)
+		betxinredis.Set(v1.TOPIC_LIST_FROMCATE_TOTAL+cid, total, v1.REDISEXPIRE)
+		betxinredis.Set(v1.TOPIC_LIST_FROMCATE+cid, topics+cid, v1.REDISEXPIRE)
 
 		v1.SendResponse(c, errmsg.SUCCSE, &ListResponse{
 			TotalCount: total,
@@ -129,5 +164,4 @@ func GetTopicByCid(c *gin.Context) {
 			List:       data,
 		})
 	}
-
 }

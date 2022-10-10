@@ -5,7 +5,6 @@ import (
 	"betxin/model"
 	"betxin/utils/errmsg"
 	myjwt "betxin/utils/jwt"
-	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -22,7 +21,6 @@ type LoginResponse struct {
 func Login(c *gin.Context) {
 	var formData model.Administrator
 	_ = c.ShouldBindJSON(&formData)
-	fmt.Println(formData)
 	var code int
 
 	formData, code = model.CheckLogin(formData.Username, formData.Password)

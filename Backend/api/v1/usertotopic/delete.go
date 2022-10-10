@@ -4,6 +4,7 @@ import (
 	v1 "betxin/api/v1"
 	"betxin/model"
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +27,7 @@ func DeleteUserToTopic(c *gin.Context) {
 		return
 	}
 
-	v1.Redis().DelKeys(
+	betxinredis.DelKeys(
 		v1.USERTOTOPIC_LIST,
 		v1.USERTOTOPIC_TOTAL,
 		v1.USERTOTOPIC_TOPIC_TOTAL+d.TopicUuid,

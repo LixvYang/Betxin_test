@@ -3,20 +3,38 @@ package topic
 import (
 	v1 "betxin/api/v1"
 	"betxin/model"
+	"betxin/service"
 	"betxin/utils/errmsg"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
-	uuid "github.com/satori/go.uuid"
 )
 
+type StopRequest struct {
+	Tid    string `json:"tid"`
+	YesWin bool   `json:"yes_win"`
+	NoWin  bool   `json:"no_win"`
+}
+
 func StopTopic(c *gin.Context) {
-	id := c.Param("id")
-	uuid, _ := uuid.FromString(id)
-	fmt.Println(uuid)
-	if code := model.StopTopic(uuid); code != errmsg.SUCCSE {
+	var r StopRequest
+	var win string
+
+	if err := c.ShouldBindJSON(&r); err != nil {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
-	v1.SendResponse(c, errmsg.SUCCSE, id)
+
+	if r.YesWin {
+		win = "yes_win"
+	} else {
+		win = "no_win"
+	}
+	service.EndOfTopic(c, r.Tid, win)
+
+
+	if code := model.StopTopic(r.Tid); code != errmsg.SUCCSE {
+		v1.SendResponse(c, errmsg.ERROR, nil)
+		return
+	}
+	v1.SendResponse(c, errmsg.SUCCSE, r.Tid)
 }

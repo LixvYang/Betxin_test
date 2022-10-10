@@ -89,7 +89,7 @@ func Transaction(ctx context.Context, client *mixin.Client, Amount decimal.Decim
 }
 
 // 根据输入的资产id和资产数目计算出资产总价格
-func CalculateTotalPriceByAssetId(ctx context.Context, AssedId string, amount decimal.Decimal)( decimal.Decimal, error) {
+func CalculateTotalPriceByAssetId(ctx context.Context, AssedId string, amount decimal.Decimal) (decimal.Decimal, error) {
 	decimal.DivisionPrecision = 2 // 保留两位小数，如有更多位，则进行四舍五入保留两位小数 
 	asset, err := mixin.ReadNetworkAsset(ctx, AssedId)
 	if err != nil {

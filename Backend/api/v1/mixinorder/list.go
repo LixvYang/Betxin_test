@@ -14,11 +14,16 @@ type ListResponse struct {
 }
 
 type ListRequest struct {
-	Offset int `json:"offset"`
-	Limit  int `json:"limit"`
+	AssetId string `json:"asset_id"`
+	TraceId string `json:"trace_id"`
+	Offset  int    `json:"offset"`
+	Limit   int    `json:"limit"`
 }
 
 func ListMixinOrder(c *gin.Context) {
+	var data []model.MixinOrder
+	var total int
+	var code int
 	var r ListRequest
 	if err := c.ShouldBindJSON(&r); err != nil {
 		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
@@ -35,11 +40,26 @@ func ListMixinOrder(c *gin.Context) {
 		r.Limit = 10
 	}
 
-	data, total, code := model.ListMixinOrder(r.Offset, r.Limit)
-	if code != errmsg.SUCCSE {
-		v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
-		return
+	if r.AssetId != "" && r.TraceId != "" {
+		data, total, code = model.ListMixinOrder(r.Offset, r.Limit, "assed_id = ? AND trace_id = ?", r.AssetId, r.TraceId)
+		if code != errmsg.SUCCSE {
+			v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
+			return
+		}
+	} else if r.AssetId != "" && r.TraceId == "" {
+		data, total, code = model.ListMixinOrder(r.Offset, r.Limit, "assed_id = ?", r.AssetId)
+		if code != errmsg.SUCCSE {
+			v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
+			return
+		} 
+	}else if r.AssetId == "" && r.TraceId == "" {
+		data, total, code = model.ListMixinOrder(r.Offset, r.Limit, "")
+		if code != errmsg.SUCCSE {
+			v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
+			return
+		}
 	}
+
 	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
 		TotalCount: total,
 		List:       data,

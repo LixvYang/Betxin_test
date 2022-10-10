@@ -9,10 +9,11 @@ import (
 
 type UserToTopic struct {
 	Id            int             `gorm:"type:int;primaryKey;autoIncrement" json:"id"`
-	TopicUuid     string          `gorm:"type:varchar(36);not null;index:useid_topicid_index" json:"tid"`
-	UserId        string          `gorm:"type:varchar(50);not null;index:useid_topicid_index" json:"user_id"`
-	YesRatioPrice decimal.Decimal `gorm:"type:decimal(10,10);not null;" json:"yes_ratio_price"`
-	NoRatioPrice  decimal.Decimal `gorm:"type:decimal(10,10);not null;" json:"no_ratio_price"`
+	UserId        string          `gorm:"type:varchar(50);not null;index:useid_topicid_index;index:userid_yes_no_index" json:"user_id"`
+	TopicId       string          `gorm:"type:varchar(36);not null;index:useid_topicid_index" json:"topic_id"`
+	Topic         Topic           `gorm:"foreignKey:Tid;references:TopicId;" json:"topic"`
+	YesRatioPrice decimal.Decimal `gorm:"type:decimal(16,8);index:userid_yes_no_index" json:"yes_ratio_price"`
+	NoRatioPrice  decimal.Decimal `gorm:"type:decimal(16,8);index:userid_yes_no_index" json:"no_ratio_price"`
 
 	CreatedAt time.Time `gorm:"type:datetime(3)" json:"created_at"`
 	UpdatedAt time.Time `gorm:"type:datetime(3)" json:"updated_at"`
@@ -65,11 +66,11 @@ func ListUserToTopicsByUserId(userId string, offset, limit int) ([]UserToTopic, 
 	var userToTopics []UserToTopic
 	var count int64
 
-	if err := db.Model(&userToTopics).Where("user_id = ?", userId).Count(&count).Error; err != nil {
+	if err := db.Preload("Topic").Model(&userToTopics).Where("user_id = ?", userId).Count(&count).Error; err != nil {
 		return userToTopics, 0, errmsg.ERROR
 	}
 
-	if err := db.Model(&userToTopics).Where("user_id = ?").Limit(limit).Offset(offset).Order("created_at DESC").Find(userToTopics).Error; err != nil {
+	if err := db.Preload("Topic").Model(&userToTopics).Where("user_id = ?").Limit(limit).Offset(offset).Order("created_at DESC").Find(userToTopics).Error; err != nil {
 		return userToTopics, 0, errmsg.ERROR
 	}
 
@@ -80,11 +81,11 @@ func ListUserToTopicsByTopicId(topicId string, offset, limit int) ([]UserToTopic
 	var userToTopics []UserToTopic
 	var count int64
 
-	if err := db.Model(&userToTopics).Where("topic_uuid = ?", topicId).Count(&count).Error; err != nil {
+	if err := db.Preload("Topic").Model(&userToTopics).Where("topic_id = ?", topicId).Count(&count).Error; err != nil {
 		return userToTopics, 0, errmsg.ERROR
 	}
 
-	if err := db.Model(&userToTopics).Where("topic_uuid = ?").Limit(limit).Offset(offset).Order("created_at DESC").Find(userToTopics).Error; err != nil {
+	if err := db.Preload("Topic").Model(&userToTopics).Where("topic_id = ?").Limit(limit).Offset(offset).Order("created_at DESC").Find(userToTopics).Error; err != nil {
 		return userToTopics, 0, errmsg.ERROR
 	}
 
@@ -95,13 +96,34 @@ func ListUserToTopics(offset, limit int) ([]UserToTopic, int, int) {
 	var userToTopics []UserToTopic
 	var count int64
 
-	if err := db.Model(&Topic{}).Count(&count).Error; err != nil {
+	if err := db.Preload("Topic").Model(&UserToTopic{}).Count(&count).Error; err != nil {
 		return userToTopics, 0, errmsg.ERROR
 	}
 
-	if err := db.Limit(limit).Offset(offset).Order("created_at DESC").Find(userToTopics).Error; err != nil {
+	if err := db.Select("topic_id, Tid, id, user_id, user_to_topic.updated_at,user_to_topic.created_at, Topic.tid, Topic.cid").Limit(limit).Offset(offset).Joins("Topic").Find(&userToTopics).Error; err != nil {
+		return nil, 0, errmsg.ERROR
+	}
+
+	return userToTopics, int(count), errmsg.SUCCSE
+}
+
+// 列出话题下的哪些用户赢了
+func ListUserToTopicsWin(topicId string, win string) ([]UserToTopic, int, int) {
+	var userToTopics []UserToTopic
+	var count int64
+
+	if err := db.Model(&userToTopics).Count(&count).Error; err != nil {
 		return userToTopics, 0, errmsg.ERROR
 	}
 
+	if win == "yes_win" {
+		db = db.Where("yes_ratio_price > 0")
+	} else {
+		db = db.Where("no_ratio_price > 0")
+	}
+
+	if err := db.Select("user_id, topic_id").Where("topic_id = ?", topicId).Find(&userToTopics).Error; err != nil {
+		return userToTopics, 0, errmsg.ERROR
+	}
 	return userToTopics, int(count), errmsg.SUCCSE
 }

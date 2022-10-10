@@ -13,40 +13,44 @@ type RedisClient struct {
 	redisClient *redis.Client
 }
 
+var r *RedisClient
+
 func NewRedisClient(ctx context.Context) *RedisClient {
-	return &RedisClient{
+	r = &RedisClient{
 		ctx: ctx,
 		redisClient: redis.NewClient(&redis.Options{
 			Addr:     utils.RedisHost + ":" + utils.RedisPort,
 			Password: utils.RedisPassword, // no password set
 			DB:       0,                   // use default DB
-		}),
+		},
+		),
 	}
+	return r
 }
 
-func (r *RedisClient) Get(key string) *redis.StringCmd {
+func Get(key string) *redis.StringCmd {
 	return r.redisClient.Get(r.ctx, key)
 }
-func (r *RedisClient) Exists(key string) bool {
+func Exists(key string) bool {
 	return r.redisClient.Exists(r.ctx, key).Val() != 0
 }
 
-func (r *RedisClient) Set(key string, value interface{}, expiration time.Duration) {
-	if r.Exists(key) {
+func Set(key string, value interface{}, expiration time.Duration) {
+	if Exists(key) {
 		r.redisClient.Expire(r.ctx, key, expiration)
 		return
 	}
 	r.redisClient.Set(r.ctx, key, value, expiration)
 }
 
-func (r *RedisClient) DelKeys(keys ...string) {
+func DelKeys(keys ...string) {
 	for i := 0; i < len(keys); i++ {
-		r.Del(keys[i])
+		Del(keys[i])
 	}
 }
 
-func (r *RedisClient) Del(key string) {
-	if !r.Exists(key) {
+func Del(key string) {
+	if !Exists(key) {
 		return
 	}
 	r.redisClient.Del(r.ctx, key)

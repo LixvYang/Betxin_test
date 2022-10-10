@@ -5,6 +5,7 @@ import (
 	"betxin/model"
 	"betxin/utils/convert"
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
@@ -37,8 +38,8 @@ func ListCollects(c *gin.Context) {
 	var collect string
 	var code int
 
-	total, _ = v1.Redis().Get(v1.COLLECT_TOTAL).Int()
-	collect, err = v1.Redis().Get(v1.COLLECT_LIST).Result()
+	total, _ = betxinredis.Get(v1.COLLECT_TOTAL).Int()
+	collect, err = betxinredis.Get(v1.COLLECT_LIST).Result()
 	convert.Unmarshal(collect, &data)
 	if err == redis.Nil {
 		var r ListRequest
@@ -58,8 +59,8 @@ func ListCollects(c *gin.Context) {
 		}
 		//
 		collect = convert.Marshal(&data)
-		v1.Redis().Set(v1.COLLECT_TOTAL, total, v1.REDISEXPIRE)
-		v1.Redis().Set(v1.COLLECT_LIST, collect, v1.REDISEXPIRE)
+		betxinredis.Set(v1.COLLECT_TOTAL, total, v1.REDISEXPIRE)
+		betxinredis.Set(v1.COLLECT_LIST, collect, v1.REDISEXPIRE)
 
 		data, total, code = model.ListCollects(r.Offset, r.Limit)
 		if code != errmsg.SUCCSE {

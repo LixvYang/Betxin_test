@@ -4,6 +4,7 @@ import (
 	v1 "betxin/api/v1"
 	"betxin/model"
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,12 +29,12 @@ func CreateUser(c *gin.Context) {
 		v1.SendResponse(c, errmsg.ERROR_CATENAME_USED, nil)
 		return
 	}
-	
+
 	if code = model.CreateUser(&r); code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
 
-	v1.Redis().DelKeys(v1.USER_LIST, v1.USER_TOTAL)
+	betxinredis.DelKeys(v1.USER_LIST, v1.USER_TOTAL)
 	v1.SendResponse(c, errmsg.SUCCSE, nil)
 }

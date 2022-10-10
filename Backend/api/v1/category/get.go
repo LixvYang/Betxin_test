@@ -5,6 +5,7 @@ import (
 	"betxin/model"
 	"betxin/utils/convert"
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -25,7 +26,7 @@ func GetCategoryInfo(c *gin.Context) {
 	var category string
 	var err error
 
-	category, err = v1.Redis().Get(v1.CATEGORY_GET + id).Result()
+	category, err = betxinredis.Get(v1.CATEGORY_GET + id).Result()
 	convert.Unmarshal(category, &data)
 	if err == redis.Nil {
 
@@ -36,7 +37,7 @@ func GetCategoryInfo(c *gin.Context) {
 		}
 		// 将数据存入redis
 		category = convert.Marshal(&data)
-		v1.Redis().Set(v1.CATEGORY_GET+id, category, v1.REDISEXPIRE)
+		betxinredis.Set(v1.CATEGORY_GET+id, category, v1.REDISEXPIRE)
 
 		v1.SendResponse(c, errmsg.SUCCSE, model.Category{
 			Id:           data.Id,

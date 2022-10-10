@@ -5,6 +5,7 @@ import (
 	"betxin/model"
 	"betxin/utils/convert"
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,6 +27,6 @@ func DeleteCategory(c *gin.Context) {
 		return
 	}
 
-	v1.Redis().DelKeys(v1.CATEGORY_GET+id, v1.CATEGORY_LIST, v1.CATEGORY_TOTAL)
+	betxinredis.DelKeys(v1.CATEGORY_GET+id, v1.CATEGORY_LIST, v1.CATEGORY_TOTAL)
 	v1.SendResponse(c, errmsg.SUCCSE, nil)
 }

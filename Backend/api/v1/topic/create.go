@@ -4,6 +4,7 @@ import (
 	v1 "betxin/api/v1"
 	"betxin/model"
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,7 +22,7 @@ func CreateTopic(c *gin.Context) {
 		return
 	}
 
-	v1.Redis().DelKeys(v1.TOPIC_TOTAL, v1.TOPIC_LIST)
+	betxinredis.DelKeys(v1.TOPIC_TOTAL, v1.TOPIC_LIST)
 
-	v1.SendResponse(c, errmsg.SUCCSE, data)
+	v1.SendResponse(c, errmsg.SUCCSE, nil)
 }

@@ -4,6 +4,8 @@ import (
 	v1 "betxin/api/v1"
 	"betxin/model"
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
+
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,6 +17,6 @@ func DeleteUser(c *gin.Context) {
 		v1.SendResponse(c, errmsg.ERROR_DELETE_CATENAME, nil)
 		return
 	}
-	v1.Redis().DelKeys(v1.USER_INFO+userId, v1.USER_LIST, v1.USER_TOTAL)
+	betxinredis.DelKeys(v1.USER_INFO+userId, v1.USER_LIST, v1.USER_TOTAL)
 	v1.SendResponse(c, errmsg.SUCCSE, nil)
 }

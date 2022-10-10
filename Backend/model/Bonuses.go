@@ -10,16 +10,15 @@ import (
 )
 
 type Bonuse struct {
-	Id          int             `gorm:"type:int;primaryKey;autoIncrement" json:"id"`
-	UserId      int             `gorm:"type:int;not null;index;" json:"user_id"`
-	Title       string          `gorm:"type:varchar(50);not null;" json:"title"`
-	Description string          `gorm:"type:varchar(200);not null;" json:"description"`
-	AssetId     string          `gorm:"type:varchar(50);not null;" json:"asset_id"`
-	Amount      decimal.Decimal `gorm:"type:decimal(16, 8)" json:"amount"`
-	Memo        string          `gorm:"type:varchar(255);" json:"memo"`
-	TraceId     string          `gorm:"type:varchar(50);not null;uniqueIndex;" json:"trace_id"`
-	CreatedAt   time.Time       `gorm:"type:datetime(3); not null" json:"created_at"`
-	UpdatedAt   time.Time       `gorm:"type:datetime(3); not null" json:"updated_at"`
+	Id        int             `gorm:"type:int;primaryKey;autoIncrement" json:"id"`
+	UserId    string          `gorm:"type:varchar(50);not null;index;" json:"user_id"`
+	Tid       string          `gorm:"varchar(36); not null;" json:"tid"`
+	AssetId   string          `gorm:"type:varchar(50);not null;" json:"asset_id"`
+	Amount    decimal.Decimal `gorm:"type:decimal(16, 8)" json:"amount"`
+	Memo      string          `gorm:"type:varchar(255);" json:"memo"`
+	TraceId   string          `gorm:"type:varchar(50);not null;uniqueIndex;" json:"trace_id"`
+	CreatedAt time.Time       `gorm:"type:datetime(3); not null" json:"created_at"`
+	UpdatedAt time.Time       `gorm:"type:datetime(3); not null" json:"updated_at"`
 }
 
 func CheckBonuse(trace_id string) int {
@@ -77,9 +76,7 @@ func UpdateBonuse(id int, data *Bonuse) int {
 	var maps = make(map[string]interface{})
 	maps["asset_id"] = data.AssetId
 	maps["amount"] = data.Amount
-	maps["description"] = data.Description
 	maps["memo"] = data.Memo
-	maps["title"] = data.Title
 	maps["trace_id"] = data.TraceId
 	maps["user_id"] = data.UserId
 
@@ -91,7 +88,6 @@ func UpdateBonuse(id int, data *Bonuse) int {
 	}
 	return errmsg.SUCCSE
 }
-
 
 func DeleteBonuse(id string) int {
 	if err := db.Where("id = ?", id).Delete(&Bonuse{}).Error; err != nil {

@@ -4,6 +4,7 @@ import (
 	v1 "betxin/api/v1"
 	"betxin/model"
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
 
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
@@ -25,7 +26,7 @@ func DeleteCollect(c *gin.Context) {
 		v1.SendResponse(c, errmsg.ERROR_DELETE_CATENAME, nil)
 		return
 	}
-	v1.Redis().DelKeys(v1.COLLECT_GET_USER_LIST+r.UserId, v1.COLLECT_GET_USER_TOTAL+r.UserId, v1.COLLECT_LIST, v1.COLLECT_TOTAL)
+	betxinredis.DelKeys(v1.COLLECT_GET_USER_LIST+r.UserId, v1.COLLECT_GET_USER_TOTAL+r.UserId, v1.COLLECT_LIST, v1.COLLECT_TOTAL)
 
 	v1.SendResponse(c, errmsg.SUCCSE, nil)
 }

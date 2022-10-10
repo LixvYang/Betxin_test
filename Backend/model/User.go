@@ -2,6 +2,7 @@ package model
 
 import (
 	"betxin/utils/errmsg"
+	"fmt"
 	"time"
 )
 
@@ -20,9 +21,12 @@ type User struct {
 func CheckUser(user_id string) int {
 	var user User
 	db.Select("user_id").Where("user_id = ?", user_id).Last(&user)
-	if user.Id != 0 {
+	if user.Id == 0 {
+		fmt.Println("不存在")
 		return errmsg.ERROR //1001
 	}
+	fmt.Println(user.Id)
+	fmt.Println("存在")
 	return errmsg.SUCCSE
 }
 
@@ -37,7 +41,7 @@ func CreateUser(data *User) int {
 //
 func GetUserById(user_id string) (User, int) {
 	var user User
-	if err := db.Model(&user).Where("user_id = ?", user_id).Error; err != nil {
+	if err := db.Model(&user).Where("user_id = ?", user_id).First(&user).Error; err != nil {
 		return User{}, errmsg.ERROR
 	}
 	return user, errmsg.SUCCSE
@@ -64,13 +68,14 @@ func UpdateUser(user_id string, data *User) int {
 	}
 
 	// 锁住指定 id 的 User 记录
-	if err := tx.Set("gorm:query_option", "FOR UPDATE").Last(&User{}, user_id).Error; err != nil {
+	if err := tx.Set("gorm:query_option", "FOR UPDATE").Where("user_id = ?", user_id).Error; err != nil {
 		tx.Rollback()
 		return errmsg.ERROR
 	}
 
 	var maps = make(map[string]interface{})
-	maps["username"] = data.FullName
+	maps["full_name"] = data.FullName
+	maps["full_name"] = data.FullName
 	if err := db.Model(&User{}).Where("user_id = ? ", user_id).Updates(maps).Error; err != nil {
 		return errmsg.ERROR
 	}

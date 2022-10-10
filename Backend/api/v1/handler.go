@@ -61,6 +61,6 @@ func SendResponse(c *gin.Context, code int, data interface{}) {
 	})
 }
 
-func Redis() *redis.RedisClient {
-	return redis.NewRedisClient(ctx)
+func Redis() {
+	redis.NewRedisClient(ctx)
 }

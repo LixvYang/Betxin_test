@@ -3,20 +3,20 @@ package topic
 import (
 	v1 "betxin/api/v1"
 	"betxin/model"
-	"betxin/utils/convert"
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
 
 	"github.com/gin-gonic/gin"
 )
 
 func DeleteTopic(c *gin.Context) {
-	id := c.Param("id")
+	tid := c.Param("tid")
 
-	if code := model.DeleteTopic(convert.StrToNum(id)); code != errmsg.SUCCSE {
+	if code := model.DeleteTopic(tid); code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR_DELETE_TOPIC, nil)
 		return
 	}
 
-	v1.Redis().DelKeys(v1.TOPIC_LIST, v1.TOPIC_TOTAL, v1.TOPIC_GET+id)
+	betxinredis.DelKeys(v1.TOPIC_LIST, v1.TOPIC_TOTAL, v1.TOPIC_GET+tid)
 	v1.SendResponse(c, errmsg.SUCCSE, nil)
 }

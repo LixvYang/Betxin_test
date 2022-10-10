@@ -18,7 +18,10 @@ import (
 	"betxin/utils/cors"
 	"betxin/utils/jwt"
 	"betxin/utils/logger"
+	"betxin/utils/session"
 
+	"github.com/gin-contrib/sessions"
+	redisStore "github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 )
 
@@ -48,7 +51,7 @@ func InitRouter() {
 		auth.POST("/administrator/add", administrator.CreateAdministrator)
 		auth.DELETE("/administrator/:id", administrator.DeleteAdministrator)
 		auth.GET("/administrator/:id", administrator.GetAdministratorInfo)
-		auth.POST("/administrator/list", administrator.ListAdministrators)	
+		auth.POST("/administrator/list", administrator.ListAdministrators)
 		auth.PUT("/administrator/:id", administrator.UpdateAdministrator)
 
 		// bonuse 奖金
@@ -102,10 +105,11 @@ func InitRouter() {
 
 		// topic 管理话题
 		auth.POST("/topic/add", topic.CreateTopic)
-		auth.DELETE("/topic/:id", topic.DeleteTopic)
-		auth.GET("/topic/:id", topic.GetTopicInfoById)
+		auth.DELETE("/topic/:tid", topic.DeleteTopic)
+		auth.GET("/topic/:tid", topic.GetTopicInfoById)
 		auth.POST("/topic/:cid", topic.GetTopicByCid)
 		auth.POST("/topic/list", topic.ListTopics)
+		auth.POST("topic/stop", topic.StopTopic)
 
 		// upload   上传文件
 		auth.POST("/file", upload.Upload)
@@ -127,19 +131,23 @@ func InitRouter() {
 		auth.PUT("/usertotopic/update", usertotopic.UpdateUserToTopic)
 	}
 
+	store, _ := redisStore.NewStore(10, "tcp", "localhost:6379", "123456", []byte("secret"))
+	r.Use(sessions.Sessions("betxin_api", store))
+	r.GET("/oauth/redirect", oauth.MixinOauth)
+
 	router := r.Group("api/v1")
+	router.Use(session.AuthMiddleware())
 	{
 		// 登录控制模块
 		router.POST("/login", administrator.Login)
-		router.GET("/oauth/redirect", oauth.MixinOauth)
 
 		// 管理用户
-		r.GET("/", func(c *gin.Context) {
-			c.HTML(200, "index.html", "flysnow_org")
-		})
-		r.GET("/welcome", func(c *gin.Context) {
-			c.HTML(200, "welcome.html", "flysnow_org")
-		})
+		// r.GET("/", func(c *gin.Context) {
+		// 	c.HTML(200, "index.html", "flysnow_org")
+		// })
+		// r.GET("/welcome", func(c *gin.Context) {
+		// 	c.HTML(200, "welcome.html", "flysnow_org")
+		// })
 
 		// 管理奖金
 
@@ -150,13 +158,16 @@ func InitRouter() {
 		//
 
 		//话题
-		// router.POST("/topic/create", topic.CreateTopic)
-		// router.POST("/topic/list", topic.ListTopics)
-		// router.POST("/topic/cid/:cid", topic.GetTopicByCid)
-		// router.GET("/topic/:id", topic.GetTopicInfoById)
-		// router.POST("/topic/stop/:id", topic.StopTopic)
-		// router.PUT("/topic/update/:id", topic.UpdateTopic)
+		// usertotopic 用户买的话题
+		// router.POST("/usertotopic/add", usertotopic.CreateUserToTopic)
+		// router.DELETE("/usertotopic/delete", usertotopic.DeleteUserToTopic)
+		// router.POST("/usertotopic/list", usertotopic.ListUserToTopics)
+		// router.POST("/usertotopic/:userId", usertotopic.ListUserToTopicsByUserId)
+		// // auth.POST("/usertotopic/:topicId", usertotopic.ListUserToTopicsByTopicId)
+		// router.PUT("/usertotopic/update", usertotopic.UpdateUserToTopic)
 		// 用户
+		router.POST("/user/info", user.GetUserInfoByUserId)
+
 		// router.POST("/user/add", user)
 		// router.POST("/file", upload.Upload)
 	}

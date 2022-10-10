@@ -73,9 +73,12 @@ func UpdateMixinOrder(traceId string, data *MixinOrder) int {
 	return errmsg.SUCCSE
 }
 
-func ListMixinOrder(limit, offset int) ([]MixinOrder, int, int) {
+func ListMixinOrder(limit, offset int, query interface{}, args ...interface{}) ([]MixinOrder, int, int) {
 	var mixinOrder []MixinOrder
 	var total int64
+	if query != "" {
+		db.Where(query, args...)
+	}
 	db.Model(&mixinOrder).Count(&total)
 	err := db.Find(&mixinOrder).Limit(limit).Offset(offset).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
