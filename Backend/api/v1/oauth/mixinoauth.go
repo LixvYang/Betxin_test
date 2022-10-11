@@ -50,8 +50,9 @@ func MixinOauth(c *gin.Context) {
 		AvatarUrl: userinfo.AvatarURL,
 		FullName:  userinfo.FullName,
 		MixinId:   userinfo.IdentityNumber,
-		UserId:    userinfo.UserID,
+		IdentityNumber:    userinfo.IdentityNumber,
 		MixinUuid: userinfo.UserID,
+		SessionId: userinfo.SessionID,
 	}
 	// 如果用户不存在
 	if checked := model.CheckUser(userinfo.UserID); checked != errmsg.SUCCSE {
@@ -61,7 +62,7 @@ func MixinOauth(c *gin.Context) {
 
 		sessionToken := uuid.NewV4().String()
 		session := sessions.Default(c)
-		session.Set("userId", user.UserId)
+		session.Set("userId", user.IdentityNumber)
 		session.Set("token", sessionToken)
 		session.Save()
 	} else {
@@ -72,16 +73,13 @@ func MixinOauth(c *gin.Context) {
 
 		session := sessions.Default(c)
 		sessionToken := session.Get("token")
-		sessionUser := session.Get("username")
+		session.Set("userId", user.IdentityNumber)
 		if sessionToken == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid session cookie"})
-			return
+			sessionToken = uuid.NewV4().String()
+			session.Set("userId", user.IdentityNumber)
+			session.Set("token", sessionToken)
+			session.Save()
 		}
-
-		sessionToken = uuid.NewV4().String()
-		session.Set("username", sessionUser.(string))
-		session.Set("token", sessionToken)
-		session.Save()
 	}
 
 	// v1.SendResponse(c, errmsg.SUCCSE, user)

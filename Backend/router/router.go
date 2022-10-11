@@ -44,6 +44,17 @@ func InitRouter() {
 	r.Use(gin.Logger())
 	r.LoadHTMLFiles("dist/index.html", "dist/welcome.html")
 
+
+	store, _ := redisStore.NewStore(10, "tcp", "localhost:6379", "123456", []byte(utils.RedisSecret))
+	r.Use(sessions.Sessions("_betxin_session", store))
+
+
+	r.POST("/api/v1/login", administrator.Login)
+	r.GET("/oauth/redirect", oauth.MixinOauth)
+	r.POST("/api/v1/topic/list", topic.ListTopics)
+	r.POST("/api/v1/category/list", category.ListCategories)
+
+
 	auth := r.Group("api/v1")
 	auth.Use(jwt.JwtToken())
 	{
@@ -67,7 +78,6 @@ func InitRouter() {
 		auth.POST("/category/add", category.CreateCatrgory)
 		auth.PUT("/category/:id", category.UpdateCategory)
 		auth.DELETE("/category/:id", category.DeleteCategory)
-		auth.POST("/category/list", category.ListCategories)
 
 		// 收藏
 		auth.POST("/collect/add", collect.CreateCollect)
@@ -108,7 +118,6 @@ func InitRouter() {
 		auth.DELETE("/topic/:tid", topic.DeleteTopic)
 		auth.GET("/topic/:tid", topic.GetTopicInfoById)
 		auth.POST("/topic/:cid", topic.GetTopicByCid)
-		auth.POST("/topic/list", topic.ListTopics)
 		auth.POST("topic/stop", topic.StopTopic)
 
 		// upload   上传文件
@@ -123,7 +132,7 @@ func InitRouter() {
 		auth.POST("/user/:userId", user.UpdateUser)
 
 		// usertotopic 用户买的话题
-		auth.POST("/usertotopic/add", usertotopic.CreateUserToTopic)
+		// auth.POST("/usertotopic/add", usertotopic.CreateUserToTopic)
 		auth.DELETE("/usertotopic/delete", usertotopic.DeleteUserToTopic)
 		auth.POST("/usertotopic/list", usertotopic.ListUserToTopics)
 		auth.POST("/usertotopic/:userId", usertotopic.ListUserToTopicsByUserId)
@@ -131,17 +140,11 @@ func InitRouter() {
 		auth.PUT("/usertotopic/update", usertotopic.UpdateUserToTopic)
 	}
 
-	store, _ := redisStore.NewStore(10, "tcp", "localhost:6379", "123456", []byte("secret"))
-	r.Use(sessions.Sessions("betxin_api", store))
-	r.GET("/oauth/redirect", oauth.MixinOauth)
-
 	router := r.Group("api/v1")
 	router.Use(session.AuthMiddleware())
-	{
+	{	
 		// 登录控制模块
-		router.POST("/login", administrator.Login)
-
-		// 管理用户
+		
 		// r.GET("/", func(c *gin.Context) {
 		// 	c.HTML(200, "index.html", "flysnow_org")
 		// })
@@ -163,8 +166,7 @@ func InitRouter() {
 		// router.DELETE("/usertotopic/delete", usertotopic.DeleteUserToTopic)
 		// router.POST("/usertotopic/list", usertotopic.ListUserToTopics)
 		// router.POST("/usertotopic/:userId", usertotopic.ListUserToTopicsByUserId)
-		// // auth.POST("/usertotopic/:topicId", usertotopic.ListUserToTopicsByTopicId)
-		// router.PUT("/usertotopic/update", usertotopic.UpdateUserToTopic)
+		// auth.POST("/usertotopic/:topicId", usertotopic.ListUserToTopicsByTopicId)
 		// 用户
 		router.POST("/user/info", user.GetUserInfoByUserId)
 

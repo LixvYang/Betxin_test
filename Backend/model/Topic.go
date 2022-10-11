@@ -16,10 +16,10 @@ type Topic struct {
 	Cid           int             `gorm:"type:int;not null" json:"cid"`
 	Category      Category        `gorm:"foreignKey:Cid" json:"category"`
 	Title         string          `gorm:"type:varchar(50);not null;index:title_intro_topic_index" json:"title"`
-	Intro         string          `gorm:"type:varchar(50);not null;index:title_intro_topic_index" json:"intro"`
+	Intro         string          `gorm:"type:varchar(255);not null;index:title_intro_topic_index" json:"intro"`
 	CollectCount  int             `gorm:"type:int;default 0" json:"collect_count"`
-	YesRatio      decimal.Decimal `gorm:"type:decimal(4,2);default 0.00;" json:"yes_ratio"`
-	NoRatio       decimal.Decimal `gorm:"type:decimal(4,2);default 0.00" json:"no_ratio"`
+	YesRatio      decimal.Decimal `gorm:"type:decimal(5,2);default 0.00;" json:"yes_ratio"`
+	NoRatio       decimal.Decimal `gorm:"type:decimal(5,2);default 0.00" json:"no_ratio"`
 	YesRatioPrice decimal.Decimal `gorm:"type:decimal(16,8);default 0" json:"yes_ratio_price"`
 	NoRatioPrice  decimal.Decimal `gorm:"type:decimal(16,8);default 0" json:"no_ratio_price"`
 	TotalPrice    decimal.Decimal `gorm:"type:decimal(32,8);default 0;" json:"total_price"`

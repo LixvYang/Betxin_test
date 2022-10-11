@@ -34,6 +34,7 @@ var (
 	RedisHost     string
 	RedisPort     string
 	RedisPassword string
+	RedisSecret   string
 
 	PUSD  string
 	BTC   string
@@ -107,6 +108,7 @@ func LoadRedis(file *ini.File) {
 	RedisHost = file.Section("redis").Key("RedisHost").MustString("")
 	RedisPort = file.Section("redis").Key("RedisPort").MustString("")
 	RedisPassword = file.Section("redis").Key("RedisPassword").MustString("")
+	RedisSecret = file.Section("redis").Key("RedisSecret").MustString("")
 }
 
 func LoadQiniu(file *ini.File) {

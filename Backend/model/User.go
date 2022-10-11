@@ -7,12 +7,15 @@ import (
 )
 
 type User struct {
-	Id        int       `gorm:"type:int;primaryKey;autoIncrement" json:"id"`
-	UserId    string    `gorm:"type:varchar(50);not null;index" json:"user_id"`
-	MixinUuid string    `gorm:"type:varchar(36);index;" json:"mixin_uuid"`
-	FullName  string    `gorm:"type:varchar(50);not null" json:"full_name"`
-	AvatarUrl string    `gorm:"type:varchar(255);not null" json:"avatar_url"`
-	MixinId   string    `gorm:"type:varchar(50);not null;index;" json:"mixin_id"`
+	Id             int    `gorm:"type:int;primaryKey;autoIncrement" json:"id"`
+	IdentityNumber string `gorm:"type:varchar(50);not null;index" json:"identity_number"`
+	MixinUuid      string `gorm:"type:varchar(36);index;" json:"mixin_uuid"`
+	FullName       string `gorm:"type:varchar(50);not null" json:"full_name"`
+	AvatarUrl      string `gorm:"type:varchar(255);not null" json:"avatar_url"`
+	MixinId        string `gorm:"type:varchar(50);not null;index;" json:"mixin_id"`
+	SessionId      string `gorm:"type:varchar(50);" json:"session_id"`
+	Phone          string `gorm:"type: varchar(30);" json:"phone"`
+
 	CreatedAt time.Time `gorm:"type:datetime(3)" json:"created_at"`
 	UpdatedAt time.Time `gorm:"type:datetime(3)" json:"updated_at"`
 }
@@ -20,7 +23,7 @@ type User struct {
 // CheckUser 查询用户是否存在
 func CheckUser(user_id string) int {
 	var user User
-	db.Select("user_id").Where("user_id = ?", user_id).Last(&user)
+	db.Model(&User{}).Where("user_id = ?", user_id).Last(&user)
 	if user.Id == 0 {
 		fmt.Println("不存在")
 		return errmsg.ERROR //1001
@@ -41,7 +44,7 @@ func CreateUser(data *User) int {
 //
 func GetUserById(user_id string) (User, int) {
 	var user User
-	if err := db.Model(&user).Where("user_id = ?", user_id).First(&user).Error; err != nil {
+	if err := db.Model(&user).Where("identity_number = ?", user_id).First(&user).Error; err != nil {
 		return User{}, errmsg.ERROR
 	}
 	return user, errmsg.SUCCSE

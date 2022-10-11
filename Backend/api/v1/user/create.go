@@ -24,7 +24,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	code := model.CheckUser(r.UserId)
+	code := model.CheckUser(r.IdentityNumber)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR_CATENAME_USED, nil)
 		return
