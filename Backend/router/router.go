@@ -53,6 +53,8 @@ func InitRouter() {
 	r.GET("/oauth/redirect", oauth.MixinOauth)
 	r.POST("/api/v1/topic/list", topic.ListTopics)
 	r.POST("/api/v1/category/list", category.ListCategories)
+	r.POST("/api/v1/topic/:cid", topic.GetTopicByCid)
+
 
 
 	auth := r.Group("api/v1")
@@ -117,7 +119,6 @@ func InitRouter() {
 		auth.POST("/topic/add", topic.CreateTopic)
 		auth.DELETE("/topic/:tid", topic.DeleteTopic)
 		auth.GET("/topic/:tid", topic.GetTopicInfoById)
-		auth.POST("/topic/:cid", topic.GetTopicByCid)
 		auth.POST("topic/stop", topic.StopTopic)
 
 		// upload   上传文件
