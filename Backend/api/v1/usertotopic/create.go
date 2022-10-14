@@ -4,14 +4,12 @@ import (
 	v1 "betxin/api/v1"
 	"betxin/model"
 	"betxin/utils/errmsg"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
 
 func CreateUserToTopic(c *gin.Context) {
 	var r model.UserToTopic
-	fmt.Println(r)
 	if err := c.ShouldBindJSON(&r); err != nil {
 		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
 		return

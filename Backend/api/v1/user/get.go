@@ -11,12 +11,10 @@ import (
 )
 
 func GetUserInfoByUserId(c *gin.Context) {
-	fmt.Println("请求到了GetUserInfoByUserId")
-	// userId := c.Param("userId")
 	session := sessions.Default(c)
 	user := session.Get("userId")
-	fmt.Println(user)
 	userId := fmt.Sprintf("%v", user)
+	fmt.Println(userId)
 
 	data, code := model.GetUserById(userId)
 	if code != errmsg.SUCCSE {

@@ -1,7 +1,9 @@
 package dailycurrency
 
 import (
+	"betxin/model"
 	"betxin/utils"
+	"betxin/utils/errmsg"
 	betxinredis "betxin/utils/redis"
 	"context"
 	"sync"
@@ -61,6 +63,20 @@ func updateRedisCurrency(ctx context.Context) {
 			if err != nil {
 				return
 			}
+			currencies := &model.Currency{
+				AssetId:  asset.AssetID,
+				PriceUsd: asset.PriceUSD,
+				PriceBtc: asset.PriceBTC,
+				ChainId:  asset.ChainID,
+				IconUrl:  asset.IconURL,
+				Symbol:   asset.Symbol,
+			}
+			// 有值
+			if model.CheckCurrency(asset.AssetID) != errmsg.SUCCSE {
+				model.UpdateCurrency(currencies)
+			} else {
+				model.CreateCurrency(currencies)
+			}
 			betxinredis.Del(asset.Name + "_" + currency + "_" + "price")
 			betxinredis.Set(asset.Name+"_"+currency+"_"+"price", asset.PriceUSD, time.Minute)
 		}(currency)
@@ -69,6 +85,6 @@ func updateRedisCurrency(ctx context.Context) {
 }
 
 func DailyCurrency(ctx context.Context) {
-	updateRedisCurrency(ctx)
+	// updateRedisCurrency(ctx)
 	gocron.Every(1).Minute().Do(updateRedisCurrency, ctx)
 }

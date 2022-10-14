@@ -9,15 +9,25 @@ import (
 )
 
 type Currency struct {
-	AssetId   string          `gorm:"uniqueIndex;type:varchar(50);not null" json:"asset_id"`
-	PriceUsd  decimal.Decimal `gorm:"type:decimal(20,10); not null" json:"price_usd"`
-	PriceBtc  decimal.Decimal `gorm:"type:decimal(20,10); not null" json:"price_btc"`
-	ChainId   string          `gorm:"type:varchar(50); not null" json:"chain_id"`
-	IconUrl   string          `gorm:"type:varchar(255)" json:"icon_url"`
-	Symbol    string          `gorm:"type:varchar(255)" json:"symbol"`
+	AssetId  string          `gorm:"uniqueIndex;type:varchar(255);not null" json:"asset_id"`
+	PriceUsd decimal.Decimal `gorm:"type:decimal(20,10); not null" json:"price_usd"`
+	PriceBtc decimal.Decimal `gorm:"type:decimal(20,10); not null" json:"price_btc"`
+	ChainId  string          `gorm:"type:varchar(255); not null" json:"chain_id"`
+	IconUrl  string          `gorm:"type:varchar(255)" json:"icon_url"`
+	Symbol   string          `gorm:"type:varchar(255)" json:"symbol"`
 
-	CreatedAt time.Time       `gorm:"type:datetime(3)" json:"created_at"`
-	UpdatedAt time.Time       `gorm:"type:datetime(3)" json:"updated_at"`
+	CreatedAt time.Time `gorm:"type:datetime(3)" json:"created_at"`
+	UpdatedAt time.Time `gorm:"type:datetime(3)" json:"updated_at"`
+}
+
+func CheckCurrency(assetId string) int {
+	var currency Currency
+	if err := db.Model(&Currency{}).Where("asset_id = ?", assetId).Find(&currency).Error; err != nil || currency.AssetId != "" {
+		// 有值
+		return errmsg.ERROR
+	}
+	// 无值
+	return errmsg.SUCCSE
 }
 
 func CreateCurrency(data *Currency) int {
@@ -39,7 +49,7 @@ func UpdateCurrency(data *Currency) int {
 	}
 
 	// 锁住指定 id 的 User 记录
-	if err := tx.Set("gorm:query_option", "FOR UPDATE").Last(&Currency{}, data.AssetId).Error; err != nil {
+	if err := tx.Set("gorm:query_option", "FOR UPDATE").Model(&Currency{}).Where("asset_id = ?", data.AssetId).Error; err != nil {
 		tx.Rollback()
 		return errmsg.ERROR
 	}
@@ -58,15 +68,15 @@ func UpdateCurrency(data *Currency) int {
 }
 
 //  查询列表
-func ListCurrencies(pageSize int, pageNum int) ([]Currency, int) {
+func ListCurrencies() ([]Currency, int, int) {
 	var currency []Currency
 	var total int64
 	db.Model(&currency).Count(&total)
-	err := db.Find(&currency).Limit(pageSize).Offset((pageNum - 1) * pageSize).Error
+	err := db.Find(&currency).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return nil, 0
+		return nil, 0, errmsg.ERROR
 	}
-	return currency, int(total)
+	return currency, int(total), errmsg.SUCCSE
 }
 
 func GetCurrencyById(asset_id int) (Currency, int) {

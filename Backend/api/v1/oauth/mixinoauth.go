@@ -32,28 +32,16 @@ func MixinOauth(c *gin.Context) {
 	if err != nil {
 		log.Fatalf("获取用户信息失败!!!")
 	}
-	// 如果用户没有认证过
-	// checked := model.CheckUserAuthorization(userinfo.UserID)
-	// if checked == errmsg.SUCCSE {
-	// 	userauth := &model.UserAuthorization{
-	// 		UserId:      userinfo.UserID,
-	// 		Provider:    "mixin",
-	// 		AccessToken: access_token,
-	// 	}
-	// 	_ = model.CreateUserAuthorization(userauth)
-	// } else {
-	// 	// 如果用户已经认证过了 那就更新assess_token
-	// 	_ = model.UpdateUserAuthorization(userinfo.UserID, access_token)
-	// }
 
 	user := model.User{
-		AvatarUrl: userinfo.AvatarURL,
-		FullName:  userinfo.FullName,
-		MixinId:   userinfo.IdentityNumber,
-		IdentityNumber:    userinfo.IdentityNumber,
-		MixinUuid: userinfo.UserID,
-		SessionId: userinfo.SessionID,
+		AvatarUrl:      userinfo.AvatarURL,
+		FullName:       userinfo.FullName,
+		MixinId:        userinfo.IdentityNumber,
+		IdentityNumber: userinfo.IdentityNumber,
+		MixinUuid:      userinfo.UserID,
+		SessionId:      userinfo.SessionID,
 	}
+
 	// 如果用户不存在
 	if checked := model.CheckUser(userinfo.UserID); checked != errmsg.SUCCSE {
 		if coded := model.CreateUser(&user); coded != errmsg.SUCCSE {
@@ -62,7 +50,7 @@ func MixinOauth(c *gin.Context) {
 
 		sessionToken := uuid.NewV4().String()
 		session := sessions.Default(c)
-		session.Set("userId", user.IdentityNumber)
+		session.Set("userId", user.MixinUuid)
 		session.Set("token", sessionToken)
 		session.Save()
 	} else {
@@ -73,10 +61,12 @@ func MixinOauth(c *gin.Context) {
 
 		session := sessions.Default(c)
 		sessionToken := session.Get("token")
-		session.Set("userId", user.IdentityNumber)
+		session.Set("token", sessionToken)
+		session.Set("userId", user.MixinUuid)
+		session.Save()
 		if sessionToken == nil {
 			sessionToken = uuid.NewV4().String()
-			session.Set("userId", user.IdentityNumber)
+			session.Set("userId", user.MixinUuid)
 			session.Set("token", sessionToken)
 			session.Save()
 		}

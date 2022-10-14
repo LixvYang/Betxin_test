@@ -2,7 +2,6 @@ package model
 
 import (
 	"betxin/utils/errmsg"
-	"fmt"
 	"time"
 )
 
@@ -23,13 +22,10 @@ type User struct {
 // CheckUser 查询用户是否存在
 func CheckUser(user_id string) int {
 	var user User
-	db.Model(&User{}).Where("user_id = ?", user_id).Last(&user)
+	db.Model(&User{}).Where("mixin_uuid = ?", user_id).Last(&user)
 	if user.Id == 0 {
-		fmt.Println("不存在")
 		return errmsg.ERROR //1001
 	}
-	fmt.Println(user.Id)
-	fmt.Println("存在")
 	return errmsg.SUCCSE
 }
 
@@ -44,7 +40,7 @@ func CreateUser(data *User) int {
 //
 func GetUserById(user_id string) (User, int) {
 	var user User
-	if err := db.Model(&user).Where("identity_number = ?", user_id).First(&user).Error; err != nil {
+	if err := db.Model(&user).Where("mixin_uuid = ?", user_id).First(&user).Error; err != nil {
 		return User{}, errmsg.ERROR
 	}
 	return user, errmsg.SUCCSE
@@ -78,8 +74,7 @@ func UpdateUser(user_id string, data *User) int {
 
 	var maps = make(map[string]interface{})
 	maps["full_name"] = data.FullName
-	maps["full_name"] = data.FullName
-	if err := db.Model(&User{}).Where("user_id = ? ", user_id).Updates(maps).Error; err != nil {
+	if err := db.Model(&User{}).Where("identity_number = ? ", user_id).Updates(maps).Error; err != nil {
 		return errmsg.ERROR
 	}
 	if err := tx.Commit().Error; err != nil {

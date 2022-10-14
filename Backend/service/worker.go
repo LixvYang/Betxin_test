@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -18,11 +19,9 @@ import (
 )
 
 type Memo struct {
-	UserId   string `json:"user_id"`
 	TopicId  string `json:"topic_id"`
 	YesRatio bool   `json:"yes_ratio"`
 	NoRatio  bool   `json:"no_ratio"`
-	TraceId  string `json:"trace_id"`
 }
 
 type Stats struct {
@@ -65,17 +64,17 @@ func sendTopCreatedAtToChannel(ctx context.Context, stats *Stats, client *mixin.
 	for _, snapshot := range snapshots {
 		wg.Add(1)
 		if snapshot.CreatedAt.After(preCreatedAt) {
-			log.Println("又有新的订单了")
 			stats.updatePrevSnapshotCreatedAt(snapshot.CreatedAt)
-			go func(ctx context.Context, client *mixin.Client, snapshot *mixin.Snapshot) {
-				defer wg.Done()
-				HandlerNewMixinSnapshot(ctx, client, snapshot)
-			}(ctx, client, snapshot)
+			if snapshot.Amount.Cmp(decimal.NewFromInt(0)) == 1 && snapshot.Type == "transfer" {
+				go func(ctx context.Context, client *mixin.Client, snapshot *mixin.Snapshot) {
+					log.Println("又有新的订单了")
+					defer wg.Done()
+					HandlerNewMixinSnapshot(ctx, client, snapshot)
+				}(ctx, client, snapshot)
+			}
 		}
 	}
-	go func() {
-		wg.Wait()
-	}()
+	wg.Wait()
 }
 
 func Worker(ctx context.Context, client *mixin.Client) error {
@@ -106,7 +105,7 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 
 	// 用户传过来的memo是经过base64加密的  yes或no  再加上trace_id 的json
 	///  memo  traceId:不应该是随机id 应该是把userid和买的topic id yesorno放在一起
-	var tx *mixin.RawTransaction
+	tx := &mixin.RawTransaction{}
 	if snapshot.AssetID != utils.PUSD {
 		tx = SwapOrderToPusd(ctx, client, snapshot.Amount, snapshot.AssetID, snapshot)
 	} else {
@@ -126,12 +125,11 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 	}
 
 	memoMsg, err := base64.StdEncoding.DecodeString(snapshot.Memo)
+	fmt.Println("memoMsg: " + string(memoMsg))
 	if err != nil {
-		log.Println("解码memo失败")
 		return errors.New("解码memo失败")
 	}
-
-	var memo Memo
+	memo := &Memo{}
 	if err := json.Unmarshal(memoMsg, &memo); err != nil {
 		return errors.New("解构memo失败")
 	}
@@ -146,13 +144,14 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 		selectWin = "no_win"
 		data.NoRatioPrice = userTotalPrice
 	}
-	data.TopicId = memo.TopicId
+	data.Tid = memo.TopicId
 
+	fmt.Println("data: ", data)
 	if code := model.CreateUserToTopic(&data); code != errmsg.SUCCSE {
 		return err
 	}
 
-	if code := model.UpdateTopicTotalPrice(data.TopicId, selectWin, userTotalPrice); code != errmsg.SUCCSE {
+	if code := model.UpdateTopicTotalPrice(data.Tid, selectWin, userTotalPrice); code != errmsg.SUCCSE {
 		return err
 	}
 	return nil

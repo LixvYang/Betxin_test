@@ -3,6 +3,7 @@ package model
 
 import (
 	"betxin/utils/errmsg"
+	"fmt"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -11,11 +12,11 @@ import (
 
 type Bonuse struct {
 	Id        int             `gorm:"type:int;primaryKey;autoIncrement" json:"id"`
-	UserId    string          `gorm:"type:varchar(50);not null;index;" json:"user_id"`
-	Tid       string          `gorm:"varchar(36); not null;" json:"tid"`
-	AssetId   string          `gorm:"type:varchar(50);not null;" json:"asset_id"`
+	UserId    string          `gorm:"type:varchar(50);index;" json:"user_id"`
+	Tid       string          `gorm:"varchar(50);" json:"tid"`
+	AssetId   string          `gorm:"type:varchar(50);" json:"asset_id"`
 	Amount    decimal.Decimal `gorm:"type:decimal(16, 8)" json:"amount"`
-	Memo      string          `gorm:"type:varchar(255);" json:"memo"`
+	Memo      string          `gorm:"type:varchar(200);" json:"memo"`
 	TraceId   string          `gorm:"type:varchar(50);not null;uniqueIndex;" json:"trace_id"`
 	CreatedAt time.Time       `gorm:"type:datetime(3); not null" json:"created_at"`
 	UpdatedAt time.Time       `gorm:"type:datetime(3); not null" json:"updated_at"`
@@ -31,7 +32,10 @@ func CheckBonuse(trace_id string) int {
 }
 
 func CreateBonuse(data *Bonuse) int {
-	if err := db.Create(&data).Error; err != nil {
+	fmt.Println("创建奖金")
+	if err := db.Model(&Bonuse{}).Create(&data).Error; err != nil {
+		fmt.Println("创建奖金出错")
+
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE

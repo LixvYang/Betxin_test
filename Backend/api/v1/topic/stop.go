@@ -31,7 +31,6 @@ func StopTopic(c *gin.Context) {
 	}
 	service.EndOfTopic(c, r.Tid, win)
 
-
 	if code := model.StopTopic(r.Tid); code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return

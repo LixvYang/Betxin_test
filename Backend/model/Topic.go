@@ -26,6 +26,7 @@ type Topic struct {
 	ReadCount     int             `gorm:"type:int;not null;default:0" json:"read_count"`
 	ImgUrl        string          `gorm:"varchar(255);" json:"img_url"`
 	IsStop        int             `gorm:"type:int;default 0;" json:"is_stop"`
+	EndTime       *time.Time      `json:"end_time"`
 
 	CreatedAt time.Time `gorm:"type:datetime(3)" json:"created_at"`
 	UpdatedAt time.Time `gorm:"type:datetime(3)" json:"updated_at"`
@@ -53,26 +54,55 @@ func CheckTopic(title string) int {
 }
 
 // 将某个话题停止
-func StopTopic(uuid string) int {
-	if err := db.Model(&Topic{}).Where("tid = ?", uuid).Update("is_stop", 1).Error; err != nil {
+func StopTopic(tid string) int {
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return errmsg.ERROR
+	}
+
+	// 锁住指定 id 记录
+	if err := tx.Set("gorm:query_option", "FOR UPDATE").Model(&Topic{}).Where("tid = ?", tid).Error; err != nil {
+		tx.Rollback()
+		return errmsg.ERROR
+	}
+
+	var maps = make(map[string]interface{})
+	maps["end_time"] = time.Now()
+	maps["is_stop"] = 1
+
+	var topic Topic
+	if err := db.Model(&Topic{}).Where("tid = ?", tid).First(&topic).Error; err != nil || topic.IsStop == 1 {
+		tx.Rollback()
+		return errmsg.ERROR
+	}
+
+	if err := db.Model(&Topic{}).Where("tid = ?", tid).Updates(maps).Error; err != nil {
+		return errmsg.ERROR
+	}
+	if err := tx.Commit().Error; err != nil {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE
 }
 
 func GetTopicTotalPrice(tid string) (int, int) {
-	var totalPrice int
-	if err := db.Model(&Topic{}).Where("tid = ?", tid).First(&totalPrice).Error; err != nil {
-		return totalPrice, errmsg.ERROR
+	var topic Topic
+	if err := db.Model(&Topic{}).Where("tid = ?", tid).First(&topic).Error; err != nil {
+		return int(topic.TotalPrice.IntPart()), errmsg.ERROR
 	}
-	return totalPrice, errmsg.SUCCSE
+	return int(topic.TotalPrice.IntPart()), errmsg.SUCCSE
 }
 
 // GetCateArt 查询分类下的所有话题
 func GetTopicByCid(cid int, limit int, offset int) ([]Topic, int, int) {
 	var topicList []Topic
 	var total int64
-	err := db.Preload("Category").Limit(limit).Offset(offset).Where("cid =?", cid).Find(&topicList).Error
+	err := db.Preload("Category").Limit(limit).Offset(offset).Where("cid =?", cid).Order("Created_At DESC").Find(&topicList).Error
 	db.Model(&topicList).Where("cid =?", cid).Count(&total)
 	if err != nil {
 		return nil, errmsg.ERROR, 0
@@ -169,7 +199,7 @@ func UpdateTopicTotalPrice(tid string, selectWin string, plusPrice decimal.Decim
 	}
 
 	// 锁住指定 id 记录
-	if err := tx.Set("gorm:query_option", "FOR UPDATE").Last(&Topic{}, tid).Error; err != nil {
+	if err := tx.Set("gorm:query_option", "FOR UPDATE").Model(&Topic{}).Where("tid = ?", tid).Error; err != nil {
 		tx.Rollback()
 		return errmsg.ERROR
 	}
@@ -177,9 +207,9 @@ func UpdateTopicTotalPrice(tid string, selectWin string, plusPrice decimal.Decim
 	db.Model(&Topic{}).Where("tid = ?", tid).Update("total_price", gorm.Expr("total_price + ?", plusPrice))
 
 	if selectWin == "yes_win" {
-		db.Model(&Topic{}).Where("tid = ?", tid).Update("yes_ratio", gorm.Expr("(? + yes_ratio_prict)/total_price", plusPrice)).Update("yes_ratio_price", gorm.Expr("yes_ratio_price + ?", plusPrice))
+		db.Model(&Topic{}).Where("tid = ?", tid).Update("yes_ratio", gorm.Expr("(? + yes_ratio_price)/total_price", plusPrice)).Update("yes_ratio_price", gorm.Expr("yes_ratio_price + ?", plusPrice))
 	} else {
-		db.Model(&Topic{}).Where("tid = ?", tid).Update("no_ratio", gorm.Expr("(? + no_ratio_prict)/total_price", plusPrice)).Update("no_ratio_price", gorm.Expr("no_ratio_price + ?", plusPrice))
+		db.Model(&Topic{}).Where("tid = ?", tid).Update("no_ratio", gorm.Expr("(? + no_ratio_price)/total_price", plusPrice)).Update("no_ratio_price", gorm.Expr("no_ratio_price + ?", plusPrice))
 	}
 
 	if err := tx.Commit().Error; err != nil {

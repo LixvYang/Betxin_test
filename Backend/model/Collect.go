@@ -2,17 +2,25 @@ package model
 
 import (
 	"betxin/utils/errmsg"
-	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"gorm.io/gorm"
 )
 
 type Collect struct {
-	Id        int       `gorm:"primaryKey;autoIncrement" json:"id"`
-	CreatedAt time.Time `gorm:"type:datetime(3); not null" json:"created_at"`
-	UpdatedAt time.Time `gorm:"type:datetime(3); not null" json:"updated_at"`
-	UserId    string    `gorm:"type:varchar(50);not null;index:user_collect_topic" json:"user_id"`
-	TopicId   uuid.UUID `gorm:"index:user_collect_topic;type:varchar(36);not null;" json:"topic_id"`
+	gorm.Model
+	UserId string `gorm:"type:varchar(50);not null;index:user_collect_topic" json:"user_id"`
+	Tid    string `gorm:"index:user_collect_topic;type:varchar(36);not null;uniqueKey" json:"tid"`
+	Topic  Topic  `gorm:"foreignKey:Tid;references:Tid;" json:"topic"`
+}
+
+// check Collect
+func CheckCollect(userId string, Tid string) int {
+	var collect Collect
+	if err := db.Model(&Collect{}).Where("user_id = ? AND tid = ?", userId, Tid).Last(&collect).Error; err != nil || collect.ID == 0 {
+		// 没有收藏或者查询失败
+		return errmsg.ERROR
+	}
+	return errmsg.SUCCSE
 }
 
 //Create Collect
@@ -28,10 +36,10 @@ func ListCollects(offset int, limit int) ([]Collect, int, int) {
 	var collects []Collect
 	var count int64
 
-	if err := db.Model(&Collect{}).Count(&count).Error; err != nil {
+	if err := db.Preload("Topic").Model(&Collect{}).Count(&count).Error; err != nil {
 		return collects, int(count), errmsg.ERROR
 	}
-	if err := db.Where("").Offset(offset).Limit(limit).Order("id desc").Find(&collects).Error; err != nil {
+	if err := db.Preload("Topic").Where("").Offset(offset).Limit(limit).Order("id desc").Find(&collects).Error; err != nil {
 		return collects, int(count), errmsg.ERROR
 	}
 
@@ -39,22 +47,20 @@ func ListCollects(offset int, limit int) ([]Collect, int, int) {
 }
 
 // 根据标签user_id获取收藏数据.
-func GetCollectByUserId(user_id string) ([]Collect, int, int) {
+func GetCollectByUserId(userId string) ([]Collect, int, int) {
 	var collects []Collect
-	var total int64
-	// select * from collect from user_id = user_id
-	if err := db.Select("user_id = ?", user_id).Model(&collects).Count(&total).Error; err != nil {
-		return nil, int(total), errmsg.ERROR
+	var count int64
+
+	if err := db.Preload("Topic").Model(&collects).Where("user_id = ?", userId).Count(&count).Order("id desc").Find(&collects).Error; err != nil {
+		return collects, int(count), errmsg.ERROR
 	}
-	if err := db.Select("user_id = ?", user_id).Find(&collects).Error; err != nil {
-		return nil, int(total), errmsg.ERROR
-	}
-	return collects, int(total), errmsg.SUCCSE
+
+	return collects, int(count), errmsg.SUCCSE
 }
 
 // Delete collect by id
-func DeleteCollect(user_id string, topic_id uuid.UUID) int {
-	if err := db.Where("user_id = ? and topic_id = ?", user_id, topic_id).Delete(&Collect{}).Error; err != nil {
+func DeleteCollect(user_id string, tid string) int {
+	if err := db.Where("user_id = ? and tid = ?", user_id, tid).Delete(&Collect{}).Error; err != nil {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE

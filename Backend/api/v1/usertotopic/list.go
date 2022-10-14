@@ -8,6 +8,7 @@ import (
 	betxinredis "betxin/utils/redis"
 	"fmt"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 )
@@ -78,56 +79,58 @@ func ListUserToTopics(c *gin.Context) {
 }
 
 func ListUserToTopicsByUserId(c *gin.Context) {
-	var data []model.UserToTopic
-	var code int
-	var total int
-	var usertotopic string
-	var err error
-	userId := c.Param("userId")
+	// var data []model.UserToTopic
+	// var code int
+	// var total int
+	// var usertotopic string
+	// var err error
+	session := sessions.Default(c)
+	user := session.Get("userId")
+	userId := fmt.Sprintf("%v", user)
 
-	total, _ = betxinredis.Get(v1.USERTOTOPIC_USER_TOTAL + userId).Int()
-	usertotopic, err = betxinredis.Get(v1.USERTOTOPIC_USER_LIST + userId).Result()
-	convert.Unmarshal(usertotopic, &data)
-	if err == redis.Nil {
-		var r ListRequest
-		if err := c.ShouldBindJSON(&r); err != nil {
-			v1.SendResponse(c, errmsg.ERROR_BIND, nil)
-			return
-		}
-		switch {
-		case r.Offset >= 100:
-			r.Offset = 100
-		case r.Limit <= 0:
-			r.Limit = 10
-		}
-
-		if r.Limit == 0 {
-			r.Limit = 10
-		}
-
-		data, total, code = model.ListUserToTopicsByUserId(r.UserId, r.Offset, r.Limit)
-		if code != errmsg.SUCCSE {
-			v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
-			return
-		}
-
-		//
-		usertotopic = convert.Marshal(&data)
-		betxinredis.Set(v1.USERTOTOPIC_USER_TOTAL+userId, total, v1.REDISEXPIRE)
-		betxinredis.Set(v1.USERTOTOPIC_USER_LIST+userId, usertotopic, v1.REDISEXPIRE)
-		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
-			TotalCount: total,
-			List:       data,
-		})
-	} else if err != nil {
-		v1.SendResponse(c, errmsg.ERROR, nil)
+	// total, _ = betxinredis.Get(v1.USERTOTOPIC_USER_TOTAL + userId).Int()
+	// usertotopic, err = betxinredis.Get(v1.USERTOTOPIC_USER_LIST + userId).Result()
+	// convert.Unmarshal(usertotopic, &data)
+	// if err == redis.Nil {
+	var r ListRequest
+	if err := c.ShouldBindJSON(&r); err != nil {
+		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
 		return
-	} else {
-		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
-			TotalCount: total,
-			List:       data,
-		})
 	}
+	switch {
+	case r.Offset >= 100:
+		r.Offset = 100
+	case r.Limit <= 0:
+		r.Limit = 10
+	}
+
+	if r.Limit == 0 {
+		r.Limit = 10
+	}
+
+	data, total, code := model.ListUserToTopicsByUserId(userId, r.Offset, r.Limit)
+	if code != errmsg.SUCCSE {
+		v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
+		return
+	}
+
+	// 	//
+	// 	usertotopic = convert.Marshal(&data)
+	// 	betxinredis.Set(v1.USERTOTOPIC_USER_TOTAL+userId, total, v1.REDISEXPIRE)
+	// 	betxinredis.Set(v1.USERTOTOPIC_USER_LIST+userId, usertotopic, v1.REDISEXPIRE)
+	// 	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+	// 		TotalCount: total,
+	// 		List:       data,
+	// 	})
+	// } else if err != nil {
+	// 	v1.SendResponse(c, errmsg.ERROR, nil)
+	// 	return
+	// } else {
+	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+		TotalCount: total,
+		List:       data,
+	})
+	// }
 }
 
 func ListUserToTopicsByTopicId(c *gin.Context) {
@@ -181,4 +184,28 @@ func ListUserToTopicsByTopicId(c *gin.Context) {
 			List:       data,
 		})
 	}
+}
+
+func ListUserToTopicsByUserIdNoLimit(c *gin.Context) {
+	session := sessions.Default(c)
+	user := session.Get("userId")
+	userId := fmt.Sprintf("%v", user)
+	fmt.Println(userId)
+	// userId := c.Param("userId")
+
+	// var r ListRequest
+	// if err := c.ShouldBindJSON(&r); err != nil {
+	// 	v1.SendResponse(c, errmsg.ERROR_BIND, nil)
+	// 	return
+	// }
+
+	data, total, code := model.ListUserToTopicsByUserIdNoLimit(userId)
+	if code != errmsg.SUCCSE {
+		v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
+		return
+	}
+	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+		TotalCount: total,
+		List:       data,
+	})
 }

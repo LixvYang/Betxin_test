@@ -5,10 +5,8 @@ import (
 	"betxin/model"
 	"betxin/utils/convert"
 	"betxin/utils/errmsg"
-	betxinredis "betxin/utils/redis"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
 )
 
 type ListResponse struct {
@@ -20,7 +18,7 @@ type ListRequest struct {
 	Offset int    `json:"offset"`
 	Limit  int    `json:"limit"`
 	Title  string `json:"title"`
-	Cid    string    `json:"cid"`
+	Cid    string `json:"cid"`
 }
 
 func ListTopics(c *gin.Context) {
@@ -113,55 +111,55 @@ func ListTopics(c *gin.Context) {
 
 // GetTopicByCid 通过种类id获取信息
 func GetTopicByCid(c *gin.Context) {
-	var topics string
+	// var topics string
 	var data []model.Topic
 	var total int
 	var code int
 	var err error
 
 	cid := c.Param("cid")
-	total, _ = betxinredis.Get(v1.TOPIC_LIST_FROMCATE_TOTAL + cid).Int()
-	topics, err = betxinredis.Get(v1.TOPIC_LIST_FROMCATE + cid).Result()
-	convert.Unmarshal(topics, &data)
-	if err == redis.Nil {
-		var r ListRequest
-		if err = c.ShouldBindJSON(&r); err != nil {
-			v1.SendResponse(c, errmsg.ERROR_BIND, nil)
-			return
-		}
-
-		switch {
-		case r.Offset >= 100:
-			r.Offset = 100
-		case r.Limit <= 0:
-			r.Limit = 10
-		}
-
-		if r.Limit == 0 {
-			r.Limit = 10
-		}
-		data, total, code = model.GetTopicByCid(convert.StrToNum(cid), r.Limit, r.Offset)
-		if code != errmsg.SUCCSE {
-			v1.SendResponse(c, errmsg.ERROR_GET_TOPIC, nil)
-			return
-		}
-
-		//
-		topics = convert.Marshal(&data)
-		betxinredis.Set(v1.TOPIC_LIST_FROMCATE_TOTAL+cid, total, v1.REDISEXPIRE)
-		betxinredis.Set(v1.TOPIC_LIST_FROMCATE+cid, topics+cid, v1.REDISEXPIRE)
-
-		v1.SendResponse(c, errmsg.SUCCSE, &ListResponse{
-			TotalCount: total,
-			List:       data,
-		})
-	} else if err != nil {
-		v1.SendResponse(c, errmsg.ERROR, nil)
+	// total, _ = betxinredis.Get(v1.TOPIC_LIST_FROMCATE_TOTAL + cid).Int()
+	// topics, err = betxinredis.Get(v1.TOPIC_LIST_FROMCATE + cid).Result()
+	// convert.Unmarshal(topics, &data)
+	// if err == redis.Nil {
+	var r ListRequest
+	if err = c.ShouldBindJSON(&r); err != nil {
+		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
 		return
-	} else {
-		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
-			TotalCount: total,
-			List:       data,
-		})
 	}
+
+	switch {
+	case r.Offset >= 100:
+		r.Offset = 100
+	case r.Limit <= 0:
+		r.Limit = 10
+	}
+
+	if r.Limit == 0 {
+		r.Limit = 10
+	}
+	data, total, code = model.GetTopicByCid(convert.StrToNum(cid), r.Limit, r.Offset)
+	if code != errmsg.SUCCSE {
+		v1.SendResponse(c, errmsg.ERROR_GET_TOPIC, nil)
+		return
+	}
+
+	//
+	// topics = convert.Marshal(&data)
+	// betxinredis.Set(v1.TOPIC_LIST_FROMCATE_TOTAL+cid, total, v1.REDISEXPIRE)
+	// betxinredis.Set(v1.TOPIC_LIST_FROMCATE+cid, topics+cid, v1.REDISEXPIRE)
+
+	// v1.SendResponse(c, errmsg.SUCCSE, &ListResponse{
+	// 	TotalCount: total,
+	// 	List:       data,
+	// })
+	// } else if err != nil {
+	// 	v1.SendResponse(c, errmsg.ERROR, nil)
+	// 	return
+	// } else {
+	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+		TotalCount: total,
+		List:       data,
+	})
+	// }
 }
