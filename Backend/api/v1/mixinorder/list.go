@@ -41,21 +41,21 @@ func ListMixinOrder(c *gin.Context) {
 	}
 
 	if r.AssetId != "" && r.TraceId != "" {
-		data, total, code = model.ListMixinOrder(r.Offset, r.Limit, "assed_id = ? AND trace_id = ?", r.AssetId, r.TraceId)
+		data, total, code = model.ListMixinOrder(r.Limit, r.Offset, "assed_id = ? AND trace_id = ?", r.AssetId, r.TraceId)
 		if code != errmsg.SUCCSE {
 			v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
 			return
 		}
 	} else if r.AssetId != "" && r.TraceId == "" {
-		data, total, code = model.ListMixinOrder(r.Offset, r.Limit, "assed_id = ?", r.AssetId)
+		data, total, code = model.ListMixinOrder(r.Limit, r.Offset, "assed_id = ?", r.AssetId)
 		if code != errmsg.SUCCSE {
 			v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
 			return
-		} 
-	}else if r.AssetId == "" && r.TraceId == "" {
-		data, total, code = model.ListMixinOrder(r.Offset, r.Limit, "")
+		}
+	} else if r.AssetId == "" && r.TraceId == "" {
+		data, total, code = model.ListMixinOrderNoLimit(r.Limit, r.Offset)
 		if code != errmsg.SUCCSE {
-			v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
+			v1.SendResponse(c, errmsg.ERROR, nil)
 			return
 		}
 	}

@@ -7,7 +7,7 @@ import (
 
 type FeedBack struct {
 	Id        int       `gorm:"primaryKey;autoIncrement" json:"id"`
-	UserId    string    `gorm:"type:varchar(36);not null;index" json:"user_id"`
+	UserId    string    `gorm:"type:varchar(36);index" json:"user_id"`
 	Title     string    `json:"title"`
 	Message   string    `json:"message"`
 	CreatedAt time.Time `gorm:"type:datetime(3); not null;" json:"created_at"`

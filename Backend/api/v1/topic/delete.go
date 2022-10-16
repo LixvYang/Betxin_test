@@ -10,7 +10,7 @@ import (
 )
 
 func DeleteTopic(c *gin.Context) {
-	tid := c.Param("tid")
+	tid := c.Param("id")
 
 	if code := model.DeleteTopic(tid); code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR_DELETE_TOPIC, nil)

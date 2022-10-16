@@ -3,13 +3,9 @@ package collect
 import (
 	v1 "betxin/api/v1"
 	"betxin/model"
-	"betxin/utils/convert"
 	"betxin/utils/errmsg"
-	betxinredis "betxin/utils/redis"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
 )
 
 type ListResponse struct {
@@ -34,53 +30,53 @@ type ListRequest struct {
 func ListCollects(c *gin.Context) {
 	var total int
 	var data []model.Collect
-	var err error
-	var collect string
+	// var err error
+	// var collect string
 	var code int
 
-	total, _ = betxinredis.Get(v1.COLLECT_TOTAL).Int()
-	collect, err = betxinredis.Get(v1.COLLECT_LIST).Result()
-	convert.Unmarshal(collect, &data)
-	if err == redis.Nil {
-		var r ListRequest
-		if err := c.ShouldBindJSON(&r); err != nil {
-			v1.SendResponse(c, errmsg.ERROR_BIND, nil)
-			return
-		}
-		switch {
-		case r.Offset >= 100:
-			r.Offset = 100
-		case r.Limit <= 0:
-			r.Limit = 10
-		}
-
-		if r.Limit == 0 {
-			r.Limit = 10
-		}
-		//
-		collect = convert.Marshal(&data)
-		betxinredis.Set(v1.COLLECT_TOTAL, total, v1.REDISEXPIRE)
-		betxinredis.Set(v1.COLLECT_LIST, collect, v1.REDISEXPIRE)
-
-		data, total, code = model.ListCollects(r.Offset, r.Limit)
-		if code != errmsg.SUCCSE {
-			v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
-			return
-		}
-
-		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
-			TotalCount: total,
-			List:       data,
-		})
-	} else if err != nil {
-		v1.SendResponse(c, errmsg.ERROR, nil)
+	// total, _ = betxinredis.Get(v1.COLLECT_TOTAL).Int()
+	// collect, err = betxinredis.Get(v1.COLLECT_LIST).Result()
+	// convert.Unmarshal(collect, &data)
+	// if err == redis.Nil {
+	var r ListRequest
+	if err := c.ShouldBindJSON(&r); err != nil {
+		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
 		return
-	} else {
-		fmt.Println("从redis拿数据")
-		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
-			TotalCount: total,
-			List:       data,
-		})
 	}
+	switch {
+	case r.Offset >= 100:
+		r.Offset = 100
+	case r.Limit <= 0:
+		r.Limit = 10
+	}
+
+	if r.Limit == 0 {
+		r.Limit = 10
+	}
+	//
+	// collect = convert.Marshal(&data)
+	// betxinredis.Set(v1.COLLECT_TOTAL, total, v1.REDISEXPIRE)
+	// betxinredis.Set(v1.COLLECT_LIST, collect, v1.REDISEXPIRE)
+
+	data, total, code = model.ListCollects(r.Offset, r.Limit)
+	if code != errmsg.SUCCSE {
+		v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
+		return
+	}
+
+	// v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+	// 	TotalCount: total,
+	// 	List:       data,
+	// })
+	// } else if err != nil {
+	// 	v1.SendResponse(c, errmsg.ERROR, nil)
+	// 	return
+	// } else {
+	// 	fmt.Println("从redis拿数据")
+	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+		TotalCount: total,
+		List:       data,
+	})
+	// }
 
 }

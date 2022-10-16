@@ -16,12 +16,12 @@ func UpdateBonuse(c *gin.Context) {
 	if err := c.ShouldBindJSON(&bonuse); err != nil {
 		log.Panicln(err)
 	}
-	code := model.CheckBonuse(bonuse.TraceId)
-	if code != errmsg.SUCCSE {
-		v1.SendResponse(c, errmsg.ERROR_CATENAME_USED, nil)
-		return
-	}
-	code = model.UpdateBonuse(convert.StrToNum(id), bonuse)
+	// code := model.CheckBonuse(bonuse.TraceId)
+	// if code != errmsg.SUCCSE {
+	// 	v1.SendResponse(c, errmsg.ERROR_CATENAME_USED, nil)
+	// 	return
+	// }
+	code := model.UpdateBonuse(convert.StrToNum(id), bonuse)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR_UPDATE_CATENAME, nil)
 		return

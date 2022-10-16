@@ -30,7 +30,8 @@ func MixinOauth(c *gin.Context) {
 
 	userinfo, err := service.GetUserInfo(access_token)
 	if err != nil {
-		log.Fatalf("获取用户信息失败!!!")
+		log.Println("Get userInfo fail!!!")
+		c.Redirect(http.StatusPermanentRedirect, fmt.Sprint("http://localhost:8080", pathUrl))
 	}
 
 	user := model.User{
@@ -45,7 +46,7 @@ func MixinOauth(c *gin.Context) {
 	// 如果用户不存在
 	if checked := model.CheckUser(userinfo.UserID); checked != errmsg.SUCCSE {
 		if coded := model.CreateUser(&user); coded != errmsg.SUCCSE {
-			log.Fatalf("error!!!")
+			log.Println("Get userInfo fail!!!")
 		}
 
 		sessionToken := uuid.NewV4().String()
@@ -56,25 +57,18 @@ func MixinOauth(c *gin.Context) {
 	} else {
 		//用户存在 就更新数据
 		if coded := model.UpdateUser(userinfo.UserID, &user); coded != errmsg.SUCCSE {
-			log.Fatalf("更新失败")
+			log.Println("Update userInfo fail!!!")
 		}
 
 		session := sessions.Default(c)
-		sessionToken := session.Get("token")
-		session.Set("token", sessionToken)
+		session.Clear()
+		sessionToken := uuid.NewV4().String()
 		session.Set("userId", user.MixinUuid)
+		session.Set("token", sessionToken)
 		session.Save()
-		if sessionToken == nil {
-			sessionToken = uuid.NewV4().String()
-			session.Set("userId", user.MixinUuid)
-			session.Set("token", sessionToken)
-			session.Save()
-		}
 	}
 
-	// v1.SendResponse(c, errmsg.SUCCSE, user)
-
-	c.Redirect(http.StatusPermanentRedirect, fmt.Sprint("http://localhost:8080", pathUrl))
+	c.Redirect(http.StatusPermanentRedirect, fmt.Sprint("http://localhost:3001", pathUrl))
 }
 
 // func MixinOauth(c *gin.Context) {

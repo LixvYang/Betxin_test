@@ -1,9 +1,11 @@
 package session
 
 import (
+	"betxin/utils"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
+	redisStore "github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,4 +21,9 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 		c.Next()
 	}
+}
+
+func EnableCookileSession(r *gin.Engine) {
+	store, _ := redisStore.NewStore(10, "tcp", utils.RedisHost+":"+utils.RedisPort, utils.RedisPassword, []byte(utils.RedisSecret))
+	r.Use(sessions.Sessions("_betxin_session", store))
 }

@@ -21,5 +21,5 @@ func UpdateUserToTopic(c *gin.Context) {
 		return
 	}
 
-	v1.SendResponse(c, errmsg.SUCCSE, userToTopic.ID)
+	v1.SendResponse(c, errmsg.SUCCSE, userToTopic.Id)
 }

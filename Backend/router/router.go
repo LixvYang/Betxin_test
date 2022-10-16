@@ -22,16 +22,16 @@ import (
 	"betxin/utils/logger"
 	"betxin/utils/session"
 
-	"github.com/gin-contrib/sessions"
-	redisStore "github.com/gin-contrib/sessions/redis"
+	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
 )
 
-// func createMyRender() multitemplate.Renderer {
-// 	p := multitemplate.NewRenderer()
-// 	p.AddFromFiles("/", "dist/index.html")
-// 	return p
-// }
+func createMyRender() multitemplate.Renderer {
+	p := multitemplate.NewRenderer()
+	p.AddFromFiles("admin", "web/admin/dist/index.html")
+	p.AddFromFiles("front", "web/front/dist/index.html")
+	return p
+}
 
 func InitRouter() {
 	gin.SetMode(utils.AppMode)
@@ -40,16 +40,26 @@ func InitRouter() {
 	// 设置信任网络 []string
 	// nil 为不计算，避免性能消耗，上线应当设置
 	_ = r.SetTrustedProxies(nil)
+	r.HTMLRender = createMyRender()
 	r.Use(logger.Logger())
 	r.Use(gin.Recovery())
 	r.Use(cors.Cors())
 	r.Use(gin.Logger())
-	r.LoadHTMLFiles("dist/index.html", "dist/welcome.html")
 
-	store, _ := redisStore.NewStore(10, "tcp", "localhost:6379", "123456", []byte(utils.RedisSecret))
-	r.Use(sessions.Sessions("_betxin_session", store))
+	r.Static("/static", "./web/front/dist/static")
+	r.Static("/admin", "./web/admin/dist")
+	r.StaticFile("/favicon.ico", "./web/front/dist/favicon.ico")
 
-	r.POST("/api/v1/login", administrator.Login)
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(200, "front", nil)
+	})
+
+	r.GET("/admin", func(c *gin.Context) {
+		c.HTML(200, "admin", nil)
+	})
+
+	session.EnableCookileSession(r)
+	r.POST("/api/v1/backend/login", administrator.Login)
 	r.GET("/oauth/redirect", oauth.MixinOauth)
 	r.POST("/api/v1/topic/list", topic.ListTopics)
 	r.POST("/api/v1/category/list", category.ListCategories)
@@ -57,114 +67,97 @@ func InitRouter() {
 	r.POST("/api/v1/currency/list", currency.ListCurrencies)
 	r.POST("/api/v1/feedback/add", feedback.CreateFeedback)
 	r.GET("/api/v1/topic/:tid", topic.GetTopicInfoById)
-
+	r.POST("/api/v1/usertotopic/check", usertotopic.CheckUserToTopic)
+	r.POST("/api/v1/usertotopic/:id", usertotopic.GetUserToTopic)
 
 	auth := r.Group("api/v1")
 	auth.Use(jwt.JwtToken())
 	{
 		//管理员
-		auth.POST("/administrator/add", administrator.CreateAdministrator)
-		auth.DELETE("/administrator/:id", administrator.DeleteAdministrator)
-		auth.GET("/administrator/:id", administrator.GetAdministratorInfo)
-		auth.POST("/administrator/list", administrator.ListAdministrators)
-		auth.PUT("/administrator/:id", administrator.UpdateAdministrator)
+		auth.POST("/backend/administrator/add", administrator.CreateAdministrator)
+		auth.DELETE("/backend/administrator/:id", administrator.DeleteAdministrator)
+		auth.GET("/backend/administrator/:id", administrator.GetAdministratorInfo)
+		auth.POST("/backend/administrator/list", administrator.ListAdministrators)
+		auth.PUT("/backend/administrator/:id", administrator.UpdateAdministrator)
 
 		// bonuse 奖金
-		auth.POST("/bounuse/add", bonuse.CreateBonuse)
-		auth.DELETE("/bonuse/:id", bonuse.DeleteBonuse)
-		auth.GET("bonuse/:trace_id", bonuse.GetBonuseByTraceId)
+		// auth.POST("/bounuse/add", bonuse.CreateBonuse)
+		auth.DELETE("/backend/bonuse/:id", bonuse.DeleteBonuse)
+		auth.GET("/backendbonuse/:trace_id", bonuse.GetBonuseByTraceId)
 		// auth.GET("bonuse/:id", bonuse.GetBonuseById)
-		auth.POST("bonuse/list", bonuse.ListBonuses)
-		auth.PUT("bonuse/:id", bonuse.UpdateBonuse)
+		auth.POST("/backend/bonuse/list", bonuse.ListBonuses)
+		auth.PUT("/backend/bonuse/:id", bonuse.UpdateBonuse)
 
 		// 分类模块
-		auth.GET("/category/:id", category.GetCategoryInfo)
-		auth.POST("/category/add", category.CreateCatrgory)
-		auth.PUT("/category/:id", category.UpdateCategory)
-		auth.DELETE("/category/:id", category.DeleteCategory)
+		auth.GET("/backend/category/:id", category.GetCategoryInfo)
+		auth.POST("/backend/category/add", category.CreateCatrgory)
+		auth.PUT("/backend/category/:id", category.UpdateCategory)
+		auth.DELETE("/backend/category/:id", category.DeleteCategory)
+		auth.POST("/backend/category/list", category.ListCategories)
 
 		// 收藏
-		// auth.POST("/collect/list", collect.ListCollects)
+		auth.POST("/backend/collect/list", collect.ListCollects)
+
+		// 加密货币
+		auth.POST("/backend/currency/list", currency.ListCurrencies)
 
 		// Mixin信息
-		auth.POST("/message/add", message.CreateMessage)
-		auth.POST("/message/:id", message.DeleteCollect)
-		auth.GET("/message/:id", message.GetMessage)
-		auth.POST("/message/list", message.ListMessages)
-		auth.PUT("/message/:id", message.UpdateMessage)
+		auth.POST("/backend/message/add", message.CreateMessage)
+		auth.POST("/backend/message/:id", message.DeleteCollect)
+		auth.GET("/backend/message/:id", message.GetMessage)
+		auth.POST("/backend/message/list", message.ListMessages)
+		auth.PUT("/backend/message/:id", message.UpdateMessage)
 
 		// MixinOrder 接收用户的币
-		auth.POST("/mixinorder/add", mixinorder.CreateMixinOrder)
-		auth.DELETE("/mixinorder/:traceId", mixinorder.DeleteMixinOrder)
-		auth.GET("/mixinorder/:traceId", mixinorder.GetMixinOrderById)
-		auth.POST("/mixinorder/list", mixinorder.ListMixinOrder)
-		auth.PUT("/mixinorder/:traceId", mixinorder.UpdateMixinOrder)
+		auth.POST("/backend/mixinorder/add", mixinorder.CreateMixinOrder)
+		auth.DELETE("/backend/mixinorder/:traceId", mixinorder.DeleteMixinOrder)
+		auth.GET("/backend/mixinorder/:traceId", mixinorder.GetMixinOrderById)
+		auth.POST("/backend/mixinorder/list", mixinorder.ListMixinOrder)
+		auth.PUT("/backend/mixinorder/:traceId", mixinorder.UpdateMixinOrder)
 
 		// snapshot 反馈给用户的钱
-		auth.POST("/snapshot/add", snapshot.CreateMixinNetworkSnapshot)
-		auth.POST("/snapshot/:traceId", snapshot.DeleteSnapshot)
-		auth.GET("/snapshot/:traceId", snapshot.GetMixinNetworkSnapshot)
-		auth.POST("/snapshot/list", snapshot.ListMixinNetworkSnapshots)
-		auth.PUT("/snapshot/:traceId", snapshot.UpdateMixinNetworkSnapshot)
+		auth.POST("/backend/snapshot/add", snapshot.CreateMixinNetworkSnapshot)
+		auth.POST("/backend/snapshot/:traceId", snapshot.DeleteSnapshot)
+		auth.GET("/backend/snapshot/:traceId", snapshot.GetMixinNetworkSnapshot)
+		auth.POST("/backend/snapshot/list", snapshot.ListMixinNetworkSnapshots)
+		auth.PUT("/backend/snapshot/:traceId", snapshot.UpdateMixinNetworkSnapshot)
 
 		// swaporder 管理从4swap的转账金钱
-		auth.POST("/swaporder/add", swaporder.CreateSwapOrder)
-		auth.DELETE("/swaporder/:traceId", swaporder.DeleteSwapOrder)
-		auth.GET("/swaporder/:traceId", swaporder.GetSwapOrder)
-		auth.POST("/swaporder/list", swaporder.ListSwapOrder)
-		auth.PUT("/swaporder/:traceId", swaporder.UpdateMessage)
+		auth.POST("/backend/swaporder/add", swaporder.CreateSwapOrder)
+		auth.DELETE("/backend/swaporder/:traceId", swaporder.DeleteSwapOrder)
+		auth.GET("/backend/swaporder/:traceId", swaporder.GetSwapOrder)
+		auth.POST("/backend/swaporder/list", swaporder.ListSwapOrderNoLimit)
+		auth.PUT("/backend/swaporder/:traceId", swaporder.UpdateMessage)
 
 		// topic 管理话题
-		auth.POST("/topic/add", topic.CreateTopic)
-		auth.DELETE("/topic/:tid", topic.DeleteTopic)
-		auth.POST("topic/stop", topic.StopTopic)
+		auth.POST("/backend/topic/add", topic.CreateTopic)
+		auth.DELETE("/backend/topic/:id", topic.DeleteTopic)
+		auth.POST("/backend/topic/stop", topic.StopTopic)
+		auth.POST("/backend/topic/list", topic.ListTopicsNoLimit)
+		auth.PUT("/backend/topic/:id", topic.UpdateTopic)
 
 		// upload   上传文件
-		auth.POST("/file", upload.Upload)
+		auth.POST("/backend/file", upload.Upload)
 
 		// user 用户管理
-		auth.POST("/user/add", user.CreateUser)
-		auth.DELETE("/user/delete", user.DeleteUser)
-		auth.GET("/user/:userId", user.GetUserInfoByUserId)
+		auth.POST("/backend/user/add", user.CreateUser)
+		auth.DELETE("/backend/user/delete", user.DeleteUser)
+		auth.GET("/backend/user/:userId", user.GetUserInfoByUserId)
 		// auth.GET("/user/:fullName", user.GetUserInfoByUserFullName)
-		auth.POST("/user/list", user.ListUser)
-		auth.POST("/user/:userId", user.UpdateUser)
+		auth.POST("/backend/user/list", user.ListUser)
+		auth.POST("/backend/user/:userId", user.UpdateUser)
 
 		// usertotopic 用户买的话题
-		auth.DELETE("/usertotopic/delete", usertotopic.DeleteUserToTopic)
-		// auth.POST("/usertotopic/list", usertotopic.ListUserToTopics)
-		// auth.POST("/usertotopic/:topicId", usertotopic.ListUserToTopicsByTopicId)
-		auth.PUT("/usertotopic/update", usertotopic.UpdateUserToTopic)
+		auth.POST("/backend/usertotopic/add", usertotopic.CreateUserToTopic)
+		auth.DELETE("/backend/usertotopic/delete", usertotopic.DeleteUserToTopic)
+		auth.POST("/backend/usertotopic/list", usertotopic.ListUserToTopics)
+		auth.POST("/backend/usertotopic/:topicId", usertotopic.ListUserToTopicsByTopicId)
+		auth.PUT("/backend/usertotopic/update", usertotopic.UpdateUserToTopic)
 	}
 
 	router := r.Group("api/v1")
 	router.Use(session.AuthMiddleware())
 	{
-		// 登录控制模块
-
-		// r.GET("/", func(c *gin.Context) {
-		// 	c.HTML(200, "index.html", "flysnow_org")
-		// })
-		// r.GET("/welcome", func(c *gin.Context) {
-		// 	c.HTML(200, "welcome.html", "flysnow_org")
-		// })
-
-		// 管理奖金
-
-		//种类
-
-		//收藏
-
-		//
-
-		//话题
-		// usertotopic 用户买的话题
-		// router.POST("/usertotopic/add", usertotopic.CreateUserToTopic)
-		// router.DELETE("/usertotopic/delete", usertotopic.DeleteUserToTopic)
-		// router.POST("/usertotopic/list", usertotopic.ListUserToTopics)
-		// router.POST("/usertotopic/:userId", usertotopic.ListUserToTopicsByUserId)
-		// auth.POST("/usertotopic/:topicId", usertotopic.ListUserToTopicsByTopicId)
-		// 用户
 		router.POST("/user/info", user.GetUserInfoByUserId)
 		router.POST("/usertotopic/list", usertotopic.ListUserToTopicsByUserIdNoLimit)
 		router.POST("/usertotopic/add", usertotopic.CreateUserToTopic)
@@ -173,9 +166,6 @@ func InitRouter() {
 		router.POST("/collect/add", collect.CreateCollect)
 		router.POST("/collect/check", collect.CheckCollect)
 		router.POST("/collect/delete", collect.DeleteCollect)
-
-		// router.POST("/user/add", user)
-		// router.POST("/file", upload.Upload)
 	}
 
 	_ = r.Run(utils.HttpPort)

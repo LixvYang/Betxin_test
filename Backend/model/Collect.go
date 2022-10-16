@@ -2,15 +2,16 @@ package model
 
 import (
 	"betxin/utils/errmsg"
-
-	"gorm.io/gorm"
+	"time"
 )
 
 type Collect struct {
-	gorm.Model
-	UserId string `gorm:"type:varchar(50);not null;index:user_collect_topic" json:"user_id"`
-	Tid    string `gorm:"index:user_collect_topic;type:varchar(36);not null;uniqueKey" json:"tid"`
-	Topic  Topic  `gorm:"foreignKey:Tid;references:Tid;" json:"topic"`
+	ID        uint      `gorm:"primarykey" json:"id"`
+	UserId    string    `gorm:"type:varchar(50);not null;index:user_collect_topic" json:"user_id"`
+	Tid       string    `gorm:"index:user_collect_topic;type:varchar(36);not null;uniqueKey" json:"tid"`
+	Topic     Topic     `gorm:"foreignKey:Tid;references:Tid;" json:"topic"`
+	CreatedAt time.Time `gorm:"datetime(3)" json:"created_at"`
+	UpdatedAt time.Time `gorm:"datatime(3)" json:"updated_at"`
 }
 
 // check Collect

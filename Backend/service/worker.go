@@ -8,7 +8,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -19,7 +18,7 @@ import (
 )
 
 type Memo struct {
-	TopicId  string `json:"topic_id"`
+	Tid      string `json:"tid"`
 	YesRatio bool   `json:"yes_ratio"`
 	NoRatio  bool   `json:"no_ratio"`
 }
@@ -125,7 +124,6 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 	}
 
 	memoMsg, err := base64.StdEncoding.DecodeString(snapshot.Memo)
-	fmt.Println("memoMsg: " + string(memoMsg))
 	if err != nil {
 		return errors.New("解码memo失败")
 	}
@@ -144,9 +142,8 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 		selectWin = "no_win"
 		data.NoRatioPrice = userTotalPrice
 	}
-	data.Tid = memo.TopicId
+	data.Tid = memo.Tid
 
-	fmt.Println("data: ", data)
 	if code := model.CreateUserToTopic(&data); code != errmsg.SUCCSE {
 		return err
 	}

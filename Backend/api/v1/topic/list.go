@@ -57,57 +57,29 @@ func ListTopics(c *gin.Context) {
 	})
 }
 
-// func ListTopics(c *gin.Context) {
-// 	var topics string
-// 	var r ListRequest
-// 	var data []model.Topic
-// 	var total int
-// 	var code int
-// 	var err error
+func ListTopicsNoLimit(c *gin.Context) {
+	var r ListRequest
+	var data []model.Topic
+	var total int
+	var code int
+	var err error
 
-// 	total, _ = betxinredis.Get(v1.TOPIC_TOTAL).Int()
-// 	topics, err = betxinredis.Get(v1.TOPIC_LIST).Result()
-// 	convert.Unmarshal(topics, &data)
-// 	if err == redis.Nil {
-// 		if err = c.ShouldBindJSON(&r); err != nil {
-// 			v1.SendResponse(c, errmsg.ERROR_BIND, nil)
-// 			return
-// 		}
-// 		if r.Title == "" && r.Content == "" && r.Intro == "" {
-// 			data, total, code = model.ListTopics(r.Offset, r.Limit)
-// 			if code != errmsg.SUCCSE {
-// 				v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
-// 				return
-// 			}
+	if err = c.ShouldBindJSON(&r); err != nil {
+		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
+		return
+	}
 
-// 			//
-// 			topics = convert.Marshal(&data)
-// 			fmt.Println("设值")
-// 			betxinredis.Set(v1.TOPIC_TOTAL, total, v1.REDISEXPIRE)
-// 			betxinredis.Set(v1.TOPIC_LIST, topics, v1.REDISEXPIRE)
-// 		} else {
-// 			data, total, code = model.SearchTopic(r.Title, r.Content, r.Intro, r.Offset, r.Limit)
-// 			if code != errmsg.SUCCSE {
-// 				v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
-// 				return
-// 			}
-// 		}
+	data, total, code = model.ListTopics(r.Offset, r.Limit)
+	if code != errmsg.SUCCSE {
+		v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
+		return
+	}
 
-// 		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
-// 			TotalCount: total,
-// 			List:       data,
-// 		})
-// 	} else if err != nil {
-// 		v1.SendResponse(c, errmsg.ERROR, nil)
-// 		return
-// 	} else {
-// 		fmt.Println("从redis拿数据")
-// 		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
-// 			TotalCount: total,
-// 			List:       data,
-// 		})
-// 	}
-// }
+	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+		TotalCount: total,
+		List:       data,
+	})
+}
 
 // GetTopicByCid 通过种类id获取信息
 func GetTopicByCid(c *gin.Context) {
