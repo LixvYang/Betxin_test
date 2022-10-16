@@ -15,6 +15,8 @@ func CreateMessage(c *gin.Context) {
 		return
 	}
 
+	// service.CreateMessage(context.Background(), client, &r)
+
 	if code := model.CreateMixinMessage(&r); code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return

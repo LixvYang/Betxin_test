@@ -3,8 +3,9 @@ package category
 import (
 	v1 "betxin/api/v1"
 	"betxin/model"
+	"betxin/utils/convert"
 	"betxin/utils/errmsg"
-	"strconv"
+	betxinredis "betxin/utils/redis"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,18 +19,14 @@ import (
 // @Success 200 {object} v1.Response "{"code":200,"message":"OK","data":null}"
 // @Router /v1/category/{id} [delete]
 func DeleteCategory(c *gin.Context) {
-	CategoryId, _ := strconv.Atoi(c.Param("id"))
-	
-	code := model.DeleteCategory(CategoryId)
+	id := c.Param("id")
+
+	code := model.DeleteCategory(convert.StrToNum(id))
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR_DELETE_CATENAME, nil)
 		return
 	}
 
-	// Delete redis store 
-	if v1.Redis().Exists("categoryies") || v1.Redis().Exists("categoryiesTotal") {
-		v1.Redis().Del("categoryiesTotal")
-		v1.Redis().Del("categoryies")
-	}
+	betxinredis.DelKeys(v1.CATEGORY_GET+id, v1.CATEGORY_LIST, v1.CATEGORY_TOTAL)
 	v1.SendResponse(c, errmsg.SUCCSE, nil)
 }

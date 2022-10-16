@@ -10,7 +10,7 @@ import (
 
 func UpdateMessage(c *gin.Context) {
 	var msg *model.MixinMessage
-	msgId := c.Param("messageId")
+	msgId := c.Param("id")
 	if err := c.ShouldBindJSON(&msg); err != nil {
 		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
 		return

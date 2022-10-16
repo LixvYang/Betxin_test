@@ -2,20 +2,50 @@ package model
 
 import (
 	"betxin/utils/errmsg"
+	"log"
+	"time"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type Administrator struct {
-	gorm.Model
-	Username string `gorm:"type:varchar(20);not null " json:"username" validate:"required,min=4,max=12" label:"用户名"`
-	Password string `gorm:"type:varchar(500);not null" json:"password" validate:"required,min=6,max=120" label:"密码"`
+	Id        int            `gorm:"primaryKey;autoIncrement" json:"id"`
+	Username  string         `gorm:"type:varchar(20);not null " json:"username" validate:"required,min=4,max=12" label:"用户名"`
+	Password  string         `gorm:"type:varchar(500);not null" json:"password" validate:"required,min=6,max=120" label:"密码"`
+	CreatedAt time.Time      `gorm:"type:datetime(3); not null" json:"created_at"`
+	UpdatedAt time.Time      `gorm:"type:datetime(3); not null" json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 }
+
+
+// BeforeCreate 密码加密&权限控制
+func (u *Administrator) BeforeCreate(_ *gorm.DB) (err error) {
+	u.Password = ScryptPw(u.Password)
+	return nil
+}
+
+func (u *Administrator) BeforeUpdate(_ *gorm.DB) (err error) {
+	u.Password = ScryptPw(u.Password)
+	return nil
+}
+
+// ScryptPw 生成密码
+func ScryptPw(password string) string {
+	const cost = 10
+
+	HashPw, err := bcrypt.GenerateFromPassword([]byte(password), cost)
+	if err != nil {
+		log.Println(err)
+	}
+	return string(HashPw)
+}
+
 
 func CheckAdministrator(username string) int {
 	var admin Administrator
 	db.Select("id").Where("username = ?", username).First(&admin)
-	if admin.ID > 0 {
+	if admin.Id > 0 {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE
@@ -32,8 +62,7 @@ func CreateAdministrator(data *Administrator) int {
 
 // Delete 管理员
 func DeleteAdministrator(id int) int {
-	var user User
-	if err := db.Where("id = ? ", id).Delete(&user).Error; err != nil {
+	if err := db.Where("id = ? ", id).Delete(&Administrator{}).Error; err != nil {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE
@@ -77,7 +106,7 @@ func UpdateAdministrator(id int, admin *Administrator) int {
 	maps["username"] = admin.Username
 	maps["password"] = admin.Password
 
-	if err := db.Model(&Category{}).Where("id = ? ", id).Updates(maps).Error; err != nil {
+	if err := db.Model(&Administrator{}).Where("id = ? ", id).Updates(maps).Error; err != nil {
 		return errmsg.ERROR
 	}
 	if err := tx.Commit().Error; err != nil {
@@ -89,10 +118,17 @@ func UpdateAdministrator(id int, admin *Administrator) int {
 // CheckLogin 后台登录验证
 func CheckLogin(username string, password string) (Administrator, int) {
 	var user Administrator
+	var PasswordErr error
 
-	db.Where("username = ? AND password = ?", username, password).First(&user)
-	if user.ID == 0 {
+	db.Where("username = ?", username).First(&user)
+	PasswordErr = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+
+	if user.Id == 0 {
 		return user, errmsg.ERROR_USER_NOT_EXIST
+	}
+
+	if PasswordErr != nil {
+		return user, errmsg.ERROR_PASSWORD_WRONG
 	}
 
 	return user, errmsg.SUCCSE

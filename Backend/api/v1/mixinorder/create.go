@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateMessage(c *gin.Context) {
+func CreateMixinOrder(c *gin.Context) {
 	var r model.MixinOrder
 	if err := c.ShouldBindJSON(&r); err != nil {
 		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
@@ -19,6 +19,8 @@ func CreateMessage(c *gin.Context) {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
+
+	
 
 	v1.SendResponse(c, errmsg.SUCCSE, r)
 }

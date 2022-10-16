@@ -5,6 +5,8 @@ import (
 	"betxin/model"
 	"betxin/utils/errmsg"
 	"log"
+	betxinredis "betxin/utils/redis"
+
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,6 +27,8 @@ func UpdateUser(c *gin.Context) {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
+
+	betxinredis.DelKeys(v1.USER_INFO+userId, v1.USER_LIST, v1.USER_TOTAL)
 
 	v1.SendResponse(c, errmsg.SUCCSE, userId)
 }

@@ -4,6 +4,7 @@ import (
 	v1 "betxin/api/v1"
 	"betxin/model"
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
 
 	"github.com/gin-gonic/gin"
 )
@@ -34,11 +35,7 @@ func CreateCatrgory(c *gin.Context) {
 		return
 	}
 
-	// Delete redis store 
-	if v1.Redis().Exists("categoryies") || v1.Redis().Exists("categoryiesTotal") {
-		v1.Redis().Del("categoryiesTotal")
-		v1.Redis().Del("categoryies")
-	}
+	betxinredis.DelKeys(v1.CATEGORY_LIST, v1.CATEGORY_TOTAL)
 
 	v1.SendResponse(c, errmsg.SUCCSE, nil)
 }

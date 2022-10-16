@@ -42,7 +42,11 @@ func GetCategoryById(id int) (Category, int) {
 func ListCategories(offset int, limit int) ([]Category, int, int) {
 	var cate []Category
 	var total int64
-	if err := db.Limit(limit).Offset(offset).Find(&cate).Limit(-1).Offset(-1).Count(&total).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err := db.Model(&cate).Count(&total).Error; err != nil {
+		return nil, 0, errmsg.ERROR
+	}
+
+	if err := db.Limit(limit).Offset(offset).Find(&cate).Error; err != nil && err != gorm.ErrRecordNotFound {
 		return nil, 0, errmsg.ERROR
 	}
 	return cate, int(total), errmsg.SUCCSE
@@ -84,4 +88,18 @@ func DeleteCategory(id int) int {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE
+}
+
+func SearchCategory(categoryName string, offset int, limit int) ([]Category, int, int) {
+	var cate []Category
+	var total int64
+
+	if err := db.Model(&Category{}).Where("category_name LIKE ?", categoryName+"%").Offset(offset).Limit(limit).Count(&total).Error; err != nil {
+		return nil, 0, errmsg.ERROR
+	}
+
+	if err := db.Model(&Category{}).Offset(offset).Limit(limit).Where("category_name LIKE ?", categoryName+"%").Find(&cate).Error; err != nil {
+		return nil, 0, errmsg.ERROR
+	}
+	return cate, int(total), errmsg.SUCCSE
 }

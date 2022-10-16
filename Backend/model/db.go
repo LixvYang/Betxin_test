@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"betxin/utils"
 
@@ -56,29 +57,31 @@ func InitDb() {
 	// db.Migrator().DropTable(&MixinOrder{})
 	// db.Migrator().DropTable(&UserToTopic{})
 	// db.Migrator().DropTable(&Administrator{})
+	// db.Migrator().DropTable(&FeedBack{})
 
-	// redist := redis.NewRedisClient()
 	// 迁移数据表，在没有数据表结构变更时候，建议注释不执行
 	db.AutoMigrate(
-	// &User{},
-	// &Category{},
-	// &Topic{},
-	// &Collect{},
-	// &Bonuse{},
-	// &Currency{},
-	// &MixinMessage{},
-	// &SwapOrder{},
-	// &MixinNetworkSnapshot{},
-	// &UserAuthorization{},
-	// &MixinOrder{},
-	// &UserToTopic{},
-	// &Administrator{},
+		&User{},
+		&Category{},
+		&Topic{},
+		&Collect{},
+		&Bonuse{},
+		&Currency{},
+		&MixinMessage{},
+		&SwapOrder{},
+		&MixinNetworkSnapshot{},
+		&UserAuthorization{},
+		&MixinOrder{},
+		&UserToTopic{},
+		&Administrator{},
+		&FeedBack{},
 	)
+
 	sqlDB, _ := db.DB()
 	// SetMaxIdleCons 设置连接池中的最大闲置连接数。
 	// SetMaxOpenCons 设置数据库的最大连接数量。
 	// SetConnMaxLifetiment 设置连接的最大可复用时间
 	sqlDB.SetMaxIdleConns(1000)
-	sqlDB.SetMaxOpenConns(100000)
-	sqlDB.SetConnMaxLifetime(-1)
+	sqlDB.SetMaxOpenConns(5000)
+	sqlDB.SetConnMaxLifetime(time.Hour / 2)
 }

@@ -9,7 +9,7 @@ import (
 )
 
 func DeleteCollect(c *gin.Context) {
-	messageId := c.Param("messageId")
+	messageId := c.Param("id")
 	code := model.DeleteMixinMessageByMessageId(messageId)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)

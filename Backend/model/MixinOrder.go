@@ -14,7 +14,7 @@ type MixinOrder struct {
 	SnapshotId string          `gorm:"type:varchar(50)" json:"snapshot_id"`
 	AssetId    string          `gorm:"type:varchar(50);not null;index" json:"asset_id"`
 	Amount     decimal.Decimal `gorm:"type:decimal(16, 8)" json:"amount"`
-	TraceId    string          `gorm:"type:varchar(50);not null;unique" json:"trace_id"`
+	TraceId    string          `gorm:"type:varchar(50);not null;index" json:"trace_id"`
 	Memo       string          `gorm:"type:varchar(255);" json:"memo"`
 	CreatedAt  time.Time       `gorm:"type:datetime(3)" json:"created_at"`
 	UpdatedAt  time.Time       `gorm:"type:datetime(3)" json:"updated_at"`
@@ -73,12 +73,25 @@ func UpdateMixinOrder(traceId string, data *MixinOrder) int {
 	return errmsg.SUCCSE
 }
 
-func ListMixinOrder(limit, offset int) ([]MixinOrder, int, int) {
+func ListMixinOrder(limit, offset int, query interface{}, args ...interface{}) ([]MixinOrder, int, int) {
 	var mixinOrder []MixinOrder
 	var total int64
-	db.Model(&mixinOrder).Count(&total)
-	err := db.Find(&mixinOrder).Limit(limit).Offset(offset).Error
+	if query != "" {
+		db.Where(query, args...)
+	}
+	err := db.Limit(limit).Offset(offset).Order("created_at DESC").Count(&total).Find(&mixinOrder).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, 0, errmsg.ERROR
+	}
+	return mixinOrder, int(total), errmsg.SUCCSE
+}
+
+func ListMixinOrderNoLimit(limit, offset int) ([]MixinOrder, int, int) {
+	var mixinOrder []MixinOrder
+	var total int64
+	err := db.Model(&MixinOrder{}).Count(&total).Error
+	err = db.Model(&MixinOrder{}).Limit(limit).Offset(offset).Order("created_at DESC").Find(&mixinOrder).Error
+	if err != nil {
 		return nil, 0, errmsg.ERROR
 	}
 	return mixinOrder, int(total), errmsg.SUCCSE

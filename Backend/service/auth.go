@@ -10,14 +10,15 @@ type UserInfo struct {
 	Data Data `json:"data"`
 }
 type Data struct {
-	UserID                        string `json:"user_id"`
-	IdentityNumber                string `json:"identity_number"`
-	FullName                      string `json:"full_name"`
-	Biography                     string `json:"biography"`
-	AvatarURL                     string `json:"avatar_url"`
-	SessionID                     string `json:"session_id"`
-	PinToken                      string `json:"pin_token"`
-	PinTokenBase64                string `json:"pin_token_base64"`
+	UserID         string `json:"user_id"`
+	IdentityNumber string `json:"identity_number"`
+	FullName       string `json:"full_name"`
+	Biography      string `json:"biography"`
+	AvatarURL      string `json:"avatar_url"`
+	SessionID      string `json:"session_id"`
+	PinToken       string `json:"pin_token"`
+	PinTokenBase64 string `json:"pin_token_base64"`
+	Phone          string `json:"phone"`
 }
 
 func GetUserInfo(access_token string) (Data, error) {

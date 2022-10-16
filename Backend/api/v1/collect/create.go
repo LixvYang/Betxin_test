@@ -4,6 +4,7 @@ import (
 	v1 "betxin/api/v1"
 	"betxin/model"
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,5 +21,6 @@ func CreateCollect(c *gin.Context) {
 		return
 	}
 
+	betxinredis.DelKeys(v1.COLLECT_LIST, v1.COLLECT_TOTAL, v1.COLLECT_GET_USER_LIST+r.UserId, v1.COLLECT_GET_USER_TOTAL+r.UserId)
 	v1.SendResponse(c, errmsg.SUCCSE, nil)
 }

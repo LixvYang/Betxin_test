@@ -7,12 +7,16 @@ import (
 
 type MixinMessage struct {
 	UserId         string    `gorm:"type:varchar(36);not null;index" json:"user_id"`
-	ConversationId int       `gorm:"type:int;not null;" json:"conversation_id"`
+	ConversationId string    `gorm:"type:varchar(50);not null;" json:"conversation_id"`
 	Category       string    `gorm:"type:varchar(50); not null" json:"category"`
 	MessageId      string    `gorm:"type:varchar(50);not null;comment:UUID;uniqueIndex" json:"message_id"`
 	Content        string    `gorm:"type:varchar(50);comment:decrepted data;" json:"content"`
 	CreatedAt      time.Time `gorm:"type:datetime(3); not null;" json:"created_at"`
 	UpdatedAt      time.Time `gorm:"type:datetime(3);not null;" json:"updated_at"`
+}
+
+func (m *MixinMessage) New() {
+
 }
 
 func CreateMixinMessage(data *MixinMessage) int {

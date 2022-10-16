@@ -10,29 +10,28 @@ import (
 )
 
 type Bonuse struct {
-	Id          int             `gorm:"type:int;primaryKey;autoIncrement" json:"id"`
-	UserId      int             `gorm:"type:int;not null;index;" json:"user_id"`
-	Title       string          `gorm:"type:varchar(50);not null;" json:"title"`
-	Description string          `gorm:"type:varchar(200);not null;" json:"description"`
-	AssetId     string          `gorm:"type:varchar(50);not null;" json:"asset_id"`
-	Amount      decimal.Decimal `gorm:"type:decimal(16, 8)" json:"amount"`
-	Memo        string          `gorm:"type:varchar(255);" json:"memo"`
-	TraceId     string          `gorm:"type:varchar(50);not null;uniqueIndex;" json:"trace_id"`
-	CreatedAt   time.Time       `gorm:"type:datetime(3); not null" json:"created_at"`
-	UpdatedAt   time.Time       `gorm:"type:datetime(3); not null" json:"updated_at"`
+	Id        uint            `gorm:"primarykey" json:"id"`
+	UserId    string          `gorm:"type:varchar(50);index;" json:"user_id"`
+	Tid       string          `gorm:"varchar(50);" json:"tid"`
+	AssetId   string          `gorm:"type:varchar(50);" json:"asset_id"`
+	Amount    decimal.Decimal `gorm:"type:decimal(16, 8)" json:"amount"`
+	Memo      string          `gorm:"type:varchar(200);" json:"memo"`
+	TraceId   string          `gorm:"type:varchar(50);not null;uniqueIndex;" json:"trace_id"`
+	CreatedAt time.Time       `gorm:"datatime(3)" json:"created_at"`
+	UpdatedAt time.Time       `gorm:"datatime(3)" json:"updated_at"`
 }
 
-func CheckBonuse(trace_id string) int {
-	var bonuse Bonuse
-	db.Select("id").Where("trace_id = ?", trace_id).Last(&bonuse)
-	if bonuse.Id > 0 {
-		return errmsg.ERROR_BONUSE_EXIST
-	}
-	return errmsg.SUCCSE
-}
+// func CheckBonuse(trace_id string) int {
+// 	var bonuse Bonuse
+// 	db.Select("id").Where("trace_id = ?", trace_id).Last(&bonuse)
+// 	if bonuse.Id > 0 {
+// 		return errmsg.ERROR_BONUSE_EXIST
+// 	}
+// 	return errmsg.SUCCSE
+// }
 
 func CreateBonuse(data *Bonuse) int {
-	if err := db.Create(&data).Error; err != nil {
+	if err := db.Exec("insert into bonuse (user_id, tid, asset_id, amount, memo, trace_id, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?)", data.UserId, data.Tid, data.AssetId, data.Amount, data.Memo, data.TraceId, time.Now(), time.Now()).Error; err != nil {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE
@@ -46,11 +45,10 @@ func GetBonuseByTraceId(trace_id string) (Bonuse, int) {
 	return bonuse, errmsg.SUCCSE
 }
 
-func ListBonuses(pageSize int, pageNum int) ([]Bonuse, int, int) {
+func ListBonuses(offset int, limit int) ([]Bonuse, int, int) {
 	var bonuse []Bonuse
 	var total int64
-	err := db.Find(&bonuse).Limit(pageSize).Offset((pageNum - 1) * pageSize).Error
-	db.Model(&bonuse).Count(&total)
+	err := db.Find(&bonuse).Limit(limit).Offset(offset).Count(&total).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, 0, errmsg.ERROR
 	}
@@ -77,9 +75,7 @@ func UpdateBonuse(id int, data *Bonuse) int {
 	var maps = make(map[string]interface{})
 	maps["asset_id"] = data.AssetId
 	maps["amount"] = data.Amount
-	maps["description"] = data.Description
 	maps["memo"] = data.Memo
-	maps["title"] = data.Title
 	maps["trace_id"] = data.TraceId
 	maps["user_id"] = data.UserId
 
@@ -91,7 +87,6 @@ func UpdateBonuse(id int, data *Bonuse) int {
 	}
 	return errmsg.SUCCSE
 }
-
 
 func DeleteBonuse(id string) int {
 	if err := db.Where("id = ?", id).Delete(&Bonuse{}).Error; err != nil {

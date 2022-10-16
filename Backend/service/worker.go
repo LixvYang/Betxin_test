@@ -2,9 +2,14 @@ package service
 
 import (
 	"betxin/model"
+	"betxin/utils"
 	"betxin/utils/errmsg"
 	"context"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/fox-one/mixin-sdk-go"
@@ -12,20 +17,10 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type CreateRequest struct {
-	Type       string          `json:"type"`
-	AssetId    string          `json:"asset_id"`
-	Amount     decimal.Decimal `gorm:"type: decimal(10, 10)" json:"amount"`
-	TraceId    string          `json:"trace_id"`
-	SnapshotId string          `json:"snapshot_id"`
-	Memo       string          `json:"memo"`
-}
-
 type Memo struct {
-	UserId   string `json:"user_id"`
+	Tid      string `json:"tid"`
 	YesRatio bool   `json:"yes_ratio"`
 	NoRatio  bool   `json:"no_ratio"`
-	TraceId  string `json:"trace_id"`
 }
 
 type Stats struct {
@@ -63,73 +58,100 @@ func sendTopCreatedAtToChannel(ctx context.Context, stats *Stats, client *mixin.
 		log.Printf("getTopHundredCreated error")
 		return
 	}
+	var wg sync.WaitGroup
+
 	for _, snapshot := range snapshots {
+		wg.Add(1)
 		if snapshot.CreatedAt.After(preCreatedAt) {
-			log.Println("又有新的订单了")
 			stats.updatePrevSnapshotCreatedAt(snapshot.CreatedAt)
-			go HandlerNewMixinSnapshot(ctx, client, snapshot)
+			if snapshot.Amount.Cmp(decimal.NewFromInt(0)) == 1 && snapshot.Type == "transfer" {
+				go func(ctx context.Context, client *mixin.Client, snapshot *mixin.Snapshot) {
+					log.Println("又有新的订单了")
+					defer wg.Done()
+					HandlerNewMixinSnapshot(ctx, client, snapshot)
+				}(ctx, client, snapshot)
+			}
 		}
 	}
+	wg.Wait()
 }
 
 func Worker(ctx context.Context, client *mixin.Client) error {
+	// subclients := subclient.NewWorkderQueue(ctx, client)
 	createdAt, err := getTopSnapshotCreatedAt(client, ctx)
 	if err != nil {
 		return nil
 	}
 	stats := &Stats{createdAt}
-	gocron.Every(1).Second().Do(sendTopCreatedAtToChannel, ctx, stats, client)
+	gocron.Every(2).Second().Do(sendTopCreatedAtToChannel, ctx, stats, client)
 	<-gocron.Start()
 	return nil
 }
 
-func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot *mixin.Snapshot) {
-	r := &CreateRequest{
+func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot *mixin.Snapshot) error {
+	r := model.MixinOrder{
 		Type:       snapshot.Type,
 		AssetId:    snapshot.AssetID,
 		Amount:     snapshot.Amount,
 		TraceId:    snapshot.TraceID,
-		SnapshotId: snapshot.SnapshotID,
 		Memo:       snapshot.Memo,
+		SnapshotId: snapshot.SnapshotID,
 	}
+
+	if code := model.CreateMixinOrder(&r); code != errmsg.SUCCSE {
+		return errors.New("")
+	}
+
 	// 用户传过来的memo是经过base64加密的  yes或no  再加上trace_id 的json
-	if code := CreateMixinOrder(r); code != errmsg.SUCCSE {
-		log.Println("创建订单错误")
-		return
+	///  memo  traceId:不应该是随机id 应该是把userid和买的topic id yesorno放在一起
+	tx := &mixin.RawTransaction{}
+	if snapshot.AssetID != utils.PUSD {
+		tx = SwapOrderToPusd(ctx, client, snapshot.Amount, snapshot.AssetID, snapshot)
+	} else {
+		tx.Amount = snapshot.Amount.String()
+		tx.AssetID = snapshot.AssetID
+	}
+	amount, err := decimal.NewFromString(tx.Amount)
+	if err != nil {
+		log.Println(err)
+		log.Println("计算失败")
 	}
 
-	// TODO:::: 解码memo后做
-	// var tx *mixin.RawTransaction
-	// if snapshot.AssetID != utils.PUSD {
-	// 	tx = SwapOrderToPusd(ctx, client, snapshot.Amount, snapshot.AssetID, snapshot)
-	// } else {
-	// 	tx.Amount = snapshot.Amount.String()
-	// 	tx.AssetID = snapshot.AssetID
-	// }
-	// amount, _ := decimal.NewFromString(tx.Amount)
-	// // 用户投入的总价格
-	// totalPrice, err := CalculateTotalPriceByAssetId(ctx, tx.AssetID, amount)
-	// if err != nil {
-	// 	log.Println("计算失败")
-	// }
+	// 用户投入的总价格
+	userTotalPrice, err := CalculateTotalPriceByAssetId(ctx, tx.AssetID, amount)
+	if err != nil {
+		log.Println("计算失败")
+	}
 
-	// memoMsg, err := base64.StdEncoding.DecodeString(snapshot.Memo)
-	// if err != nil {
-	// 	log.Println("解码memo失败")
-	// }
-	// var memo Memo
-	// if err := json.Unmarshal(memoMsg, &memo); err != nil {
-	// 	log.Println("解构memo失败")
-	// }
-	// var data *model.UserToTopic
-	// data.UserId = snapshot.OpponentID
-	// if memo.YesRatio {
-	// 	data.YesRatioPrice = totalPrice
-	// } else {
-	// 	data.NoRatioPrice = totalPrice
-	// }
+	memoMsg, err := base64.StdEncoding.DecodeString(snapshot.Memo)
+	if err != nil {
+		return errors.New("解码memo失败")
+	}
+	memo := &Memo{}
+	if err := json.Unmarshal(memoMsg, &memo); err != nil {
+		return errors.New("解构memo失败")
+	}
 
-	// model.CreateUserToTopic(data)
+	var data model.UserToTopic
+	var selectWin string
+	data.UserId = snapshot.OpponentID
+	if memo.YesRatio {
+		selectWin = "yes_win"
+		data.YesRatioPrice = userTotalPrice
+	} else {
+		selectWin = "no_win"
+		data.NoRatioPrice = userTotalPrice
+	}
+	data.Tid = memo.Tid
+
+	if code := model.CreateUserToTopic(&data); code != errmsg.SUCCSE {
+		return err
+	}
+
+	if code := model.UpdateTopicTotalPrice(data.Tid, selectWin, userTotalPrice); code != errmsg.SUCCSE {
+		return err
+	}
+	return nil
 }
 
 func SwapOrderToPusd(ctx context.Context, client *mixin.Client, Amount decimal.Decimal, InputAssetId string, snapshot *mixin.Snapshot) *mixin.RawTransaction {
@@ -137,7 +159,12 @@ func SwapOrderToPusd(ctx context.Context, client *mixin.Client, Amount decimal.D
 	if err != nil {
 		log.Println("swap交易失败")
 		Transfer(ctx, client, InputAssetId, snapshot.OpponentID, snapshot.Amount, "交易失败")
-		return nil
+		switch {
+		case mixin.IsErrorCodes(err, mixin.InsufficientBalance):
+			log.Println("insufficient balance")
+		default:
+			log.Printf("transfer: %v", err)
+		}
 	}
 	amount, _ := decimal.NewFromString(tx.Amount)
 	date := &model.SwapOrder{
@@ -158,15 +185,12 @@ func SwapOrderToPusd(ctx context.Context, client *mixin.Client, Amount decimal.D
 	return tx
 }
 
-func CreateMixinOrder(r *CreateRequest) int {
-	data := &model.MixinOrder{
-		Type:       r.Type,
-		AssetId:    r.AssetId,
-		Amount:     r.Amount,
-		TraceId:    r.TraceId,
-		SnapshotId: r.SnapshotId,
-		Memo:       r.Memo,
+func ReturnAssetToBot(ctx context.Context, client, subClient *mixin.Client, snapshot *mixin.Snapshot) error {
+	memo := "sub client return"
+	_, err := Transfer(ctx, subClient, snapshot.AssetID, client.ClientID, snapshot.Amount, memo)
+	if err != nil {
+		log.Println(err)
+		return err
 	}
-	code := model.CreateMixinOrder(data)
-	return code
+	return nil
 }

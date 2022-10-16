@@ -1,84 +1,90 @@
 package dailycurrency
 
 import (
-	"context"
-	"fmt"
-	"log"
 	"betxin/model"
 	"betxin/utils"
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
+	"context"
+	"sync"
+	"time"
 
 	"github.com/fox-one/mixin-sdk-go"
 	"github.com/jasonlvhit/gocron"
 )
 
-func updateDailyCurrency(ctx context.Context, update bool) {
+var AllCurrency = [...]string{
+	utils.PUSD,
+	utils.BTC,
+	utils.BOX,
+	utils.XIN,
+	utils.ETH,
+	utils.MOB,
+	utils.USDC,
+	utils.USDT,
+	utils.EOS,
+	utils.SOL,
+	utils.UNI,
+	utils.DOGE,
+	utils.RUM,
+	utils.DOT,
+	utils.WOO,
+	utils.ZEC,
+	utils.LTC,
+	utils.SHIB,
+	utils.BCH,
+	utils.MANA,
+	utils.FIL,
+	utils.BNB,
+	utils.XRP,
+	utils.SC,
+	utils.MATIC,
+	utils.ETC,
+	utils.XMR,
+	utils.DCR,
+	utils.TRX,
+	utils.ATOM,
+	utils.CKB,
+	utils.LINK,
+	utils.GTC,
+	utils.HNS,
+	utils.DASH,
+	utils.XLM,
+}
 
-	AllCurrency := [...]string{
-		utils.PUSD,
-		utils.BTC,
-		utils.BOX,
-		utils.XIN,
-		utils.ETH,
-		utils.MOB,
-		utils.USDC,
-		utils.USDT,
-		utils.EOS,
-		utils.SOL,
-		utils.UNI,
-		utils.DOGE,
-		utils.RUM,
-		utils.DOT,
-		utils.WOO,
-		utils.ZEC,
-		utils.LTC,
-		utils.SHIB,
-		utils.BCH,
-		utils.MANA,
-		utils.FIL,
-		utils.BNB,
-		utils.XRP,
-		utils.SC,
-		utils.MATIC,
-		utils.ETC,
-		utils.XMR,
-		utils.DCR,
-		utils.TRX,
-		utils.ATOM,
-		utils.CKB,
-		utils.LINK,
-		utils.GTC,
-		utils.HNS,
-		utils.DASH,
-		utils.XLM,
-	}
+func updateRedisCurrency(ctx context.Context) {
+	var wg sync.WaitGroup
+
 	for _, currency := range AllCurrency {
-		asset, err := mixin.ReadNetworkAsset(ctx, currency)
-		if err != nil {
-			return
-		}
-		data := model.Currency{
-			AssetId:  asset.AssetID,
-			PriceUsd: asset.PriceUSD,
-			PriceBtc: asset.PriceBTC,
-			ChainId:  asset.ChainID,
-			IconUrl:  asset.IconURL,
-			Symbol:   asset.Symbol,
-		}
-		if update {
-			if code := model.UpdateCurrency(&data); code != errmsg.SUCCSE {
-				log.Fatalln(code)
+		wg.Add(1)
+		go func(currency string) {
+			defer wg.Done()
+			asset, err := mixin.ReadNetworkAsset(ctx, currency)
+			if err != nil {
+				return
 			}
-		} else {
-			if code := model.CreateCurrency(&data); code != errmsg.SUCCSE {
-				log.Fatalln(code)
+			currencies := &model.Currency{
+				AssetId:  asset.AssetID,
+				PriceUsd: asset.PriceUSD,
+				PriceBtc: asset.PriceBTC,
+				ChainId:  asset.ChainID,
+				IconUrl:  asset.IconURL,
+				Symbol:   asset.Symbol,
 			}
-		}
+			// 有值
+			if model.CheckCurrency(asset.AssetID) != errmsg.SUCCSE {
+				model.UpdateCurrency(currencies)
+			} else {
+				model.CreateCurrency(currencies)
+			}
+			betxinredis.Del(asset.Name + "_" + currency + "_" + "price")
+			betxinredis.Set(asset.Name+"_"+currency+"_"+"price", asset.PriceUSD, time.Minute)
+		}(currency)
 	}
+	wg.Wait()
 }
 
 func DailyCurrency(ctx context.Context) {
-	fmt.Println("调用")
-	updateDailyCurrency(ctx, false)
-	gocron.Every(1).Day().Do(updateDailyCurrency, ctx, true)
+	// updateRedisCurrency(ctx)
+	gocron.Every(1).Minute().Do(updateRedisCurrency, ctx)
 }

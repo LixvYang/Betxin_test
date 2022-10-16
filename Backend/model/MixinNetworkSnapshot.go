@@ -1,4 +1,4 @@
-// 记录 topic结束  转账给用户的表
+// 记录topic结束, 从机器人转给用户的表
 package model
 
 import (
@@ -10,12 +10,15 @@ import (
 )
 
 type MixinNetworkSnapshot struct {
-	SnapshotId string          `gorm:"type:varchar(50)" json:"snapshot_id"`
-	TraceId    string          `gorm:"type:varchar(50);not null;" json:"trace_id"`
-	UserId     string          `gorm:"type:varchar(50);not null" json:"user_id,omitempty"`
-	AssetId    string          `gorm:"type:varchar(50);not null;index" json:"asset_id"`
-	OpponentID string          `gorm:"type:varchar(50)" json:"opponent_id,omitempty"`
-	Amount     decimal.Decimal `gorm:"type:decimal(16, 8)" json:"amount"`
+	SnapshotId     string          `gorm:"type:varchar(50)" json:"snapshot_id"`
+	TraceId        string          `gorm:"type:varchar(50);not null;" json:"trace_id"`
+	AssetId        string          `gorm:"type:varchar(50);not null;index" json:"asset_id"`
+	OpponentID     string          `gorm:"type:varchar(50)" json:"opponent_id"`
+	Amount         decimal.Decimal `gorm:"type:decimal(16, 8)" json:"amount"`
+	Memo           string          `gorm:"type:varchar(200)" json:"memo"`
+	Type           string          `gorm:"type:varchar(200)" json:"type"`
+	OpeningBalance decimal.Decimal `json:"opening_balance"`
+	ClosingBalance decimal.Decimal `json:"closing_balance"`
 
 	CreatedAt time.Time `gorm:"type:datetime(3)" json:"created_at"`
 	UpdatedAt time.Time `gorm:"type:datetime(3)" json:"updated_at"`
@@ -30,10 +33,11 @@ func CheckMixinNetworkSnapshot(traceId string) int {
 }
 
 func CreateMixinNetworkSnapshot(data *MixinNetworkSnapshot) int {
-	if err := db.Create(&data).Error; err != nil {
+	if err := db.Exec("insert into mixin_network_snapshot (snapshot_id, trace_id, asset_id, opponent_id, amount, memo, type, opening_balance, closing_balance, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		data.SnapshotId, data.TraceId, data.AssetId, data.OpponentID, data.Amount, data.Memo, data.Type, data.OpeningBalance, data.ClosingBalance, time.Now(), time.Now()); err != nil {
 		return errmsg.ERROR
 	}
-	return errmsg.ERROR
+	return errmsg.SUCCSE
 }
 
 func DeleteMixinNetworkSnapshot(traceId string) int {
@@ -69,7 +73,6 @@ func UpdateMixinNetworkSnapshot(traceId string, data *MixinNetworkSnapshot) int 
 	}
 
 	var maps = make(map[string]interface{})
-	maps["user_id"] = data.UserId
 	maps["asset_id"] = data.AssetId
 	maps["opponent_id"] = data.OpponentID
 	maps["amount"] = data.Amount

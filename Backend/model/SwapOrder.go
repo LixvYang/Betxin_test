@@ -74,13 +74,27 @@ func GetSwapOrder(traceId string) (SwapOrder, int) {
 	return swapOrder, errmsg.SUCCSE
 }
 
-func ListSwapOrders(offset int, limit int) ([]SwapOrder, int) {
+func ListSwapOrders(offset int, limit int, query interface{}, args ...interface{}) ([]SwapOrder, int, int) {
+	var swapOrders []SwapOrder
+	var total int64
+	if query != "" {
+		db.Where(query, args...)
+	}
+	db.Model(&swapOrders).Count(&total)
+	err := db.Find(&swapOrders).Limit(limit).Offset(offset).Order("created_at DESC").Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, 0, errmsg.ERROR
+	}
+	return swapOrders, int(total), errmsg.SUCCSE
+}
+
+func ListSwapOrdersNoLimit(offset int, limit int) ([]SwapOrder, int, int) {
 	var swapOrders []SwapOrder
 	var total int64
 	db.Model(&swapOrders).Count(&total)
-	err := db.Find(&swapOrders).Limit(limit).Offset(offset).Error
+	err := db.Limit(limit).Offset(offset).Order("created_at DESC").Find(&swapOrders).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return nil, 0
+		return nil, 0, errmsg.ERROR
 	}
-	return swapOrders, int(total)
+	return swapOrders, int(total), errmsg.SUCCSE
 }

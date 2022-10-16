@@ -1,19 +1,27 @@
 package oauth
 
 import (
-	"log"
 	"betxin/model"
 	"betxin/service"
 	"betxin/utils"
 	"betxin/utils/errmsg"
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/fox-one/mixin-sdk-go"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	uuid "github.com/satori/go.uuid"
 )
 
 func MixinOauth(c *gin.Context) {
 	var code = c.Query("code")
+	var pathUrl string = "/"
+
+	if c.Query("state") != "" {
+		pathUrl = c.Query("state")
+	}
 	access_token, _, err := mixin.AuthorizeToken(c, utils.ClientId, utils.AppSecret, code, "")
 	if err != nil {
 		log.Printf("AuthorizeToken: %v", err)
@@ -22,37 +30,45 @@ func MixinOauth(c *gin.Context) {
 
 	userinfo, err := service.GetUserInfo(access_token)
 	if err != nil {
-		log.Fatalf("获取用户信息失败!!!")
+		log.Println("Get userInfo fail!!!")
+		c.Redirect(http.StatusPermanentRedirect, fmt.Sprint("http://localhost:8080", pathUrl))
 	}
-	// 如果用户没有认证过
-	checked := model.CheckUserAuthorization(userinfo.UserID)
-	if checked == errmsg.SUCCSE {
-		userauth := &model.UserAuthorization{
-			UserId:      userinfo.UserID,
-			Provider:    "mixin",
-			AccessToken: access_token,
-		}
-		_ = model.CreateUserAuthorization(userauth)
-	} else {
-		// 如果用户已经认证过了 那就更新assess_token
-		_ = model.UpdateUserAuthorization(userinfo.UserID, access_token)
+
+	user := model.User{
+		AvatarUrl:      userinfo.AvatarURL,
+		FullName:       userinfo.FullName,
+		MixinId:        userinfo.IdentityNumber,
+		IdentityNumber: userinfo.IdentityNumber,
+		MixinUuid:      userinfo.UserID,
+		SessionId:      userinfo.SessionID,
 	}
 
 	// 如果用户不存在
-	if checked := model.CheckUser(userinfo.UserID); checked == errmsg.SUCCSE {
-		user := model.User{
-			AvatarUrl: userinfo.AvatarURL,
-			FullName:  userinfo.FullName,
-			MixinId:   userinfo.IdentityNumber,
-			UserId:    userinfo.UserID,
+	if checked := model.CheckUser(userinfo.UserID); checked != errmsg.SUCCSE {
+		if coded := model.CreateUser(&user); coded != errmsg.SUCCSE {
+			log.Println("Get userInfo fail!!!")
 		}
-		if cod := model.CreateUser(&user); cod == errmsg.ERROR {
-			log.Fatalf("error!!!")
-		}
-	}
-	//用户存在 就更新数据
 
-	c.Redirect(http.StatusPermanentRedirect, "/welcome")
+		sessionToken := uuid.NewV4().String()
+		session := sessions.Default(c)
+		session.Set("userId", user.MixinUuid)
+		session.Set("token", sessionToken)
+		session.Save()
+	} else {
+		//用户存在 就更新数据
+		if coded := model.UpdateUser(userinfo.UserID, &user); coded != errmsg.SUCCSE {
+			log.Println("Update userInfo fail!!!")
+		}
+
+		session := sessions.Default(c)
+		session.Clear()
+		sessionToken := uuid.NewV4().String()
+		session.Set("userId", user.MixinUuid)
+		session.Set("token", sessionToken)
+		session.Save()
+	}
+
+	c.Redirect(http.StatusPermanentRedirect, fmt.Sprint("http://localhost:3001", pathUrl))
 }
 
 // func MixinOauth(c *gin.Context) {
