@@ -96,8 +96,8 @@ func init() {
 
 func LoadServer(file *ini.File) {
 	IP = file.Section("server").Key("IP").MustString("")
-	AppMode = file.Section("server").Key("AppMode").MustString("debug")
-	HttpPort = file.Section("server").Key("HttpPort").MustString(":3000")
+	AppMode = file.Section("server").Key("AppMode").MustString("")
+	HttpPort = file.Section("server").Key("HttpPort").MustString(":8080")
 	JwtKey = file.Section("server").Key("JwtKey").MustString("")
 }
 
@@ -107,10 +107,10 @@ func LoadAdmin(file *ini.File) {
 }
 
 func LoadData(file *ini.File) {
-	Db = file.Section("database").Key("Db").MustString("debug")
-	DbHost = file.Section("database").Key("DbHost").MustString("localhost")
-	DbPort = file.Section("database").Key("DbPort").MustString("3307")
-	DbUser = file.Section("database").Key("DbUser").MustString("root")
+	Db = file.Section("database").Key("Db").MustString("")
+	DbHost = file.Section("database").Key("DbHost").MustString("")
+	DbPort = file.Section("database").Key("DbPort").MustString("")
+	DbUser = file.Section("database").Key("DbUser").MustString("")
 	DbPassWord = file.Section("database").Key("DbPassWord").MustString("")
 	DbName = file.Section("database").Key("DbName").MustString("")
 }
