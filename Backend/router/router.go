@@ -1,6 +1,7 @@
 package router
 
 import (
+	"betxin/api/sd"
 	"betxin/api/v1/administrator"
 	"betxin/api/v1/bonuse"
 	"betxin/api/v1/category"
@@ -69,6 +70,7 @@ func InitRouter() {
 	r.GET("/api/v1/topic/:tid", topic.GetTopicInfoById)
 	r.POST("/api/v1/usertotopic/check", usertotopic.CheckUserToTopic)
 	r.POST("/api/v1/usertotopic/:id", usertotopic.GetUserToTopic)
+	administrator.CreateAdministratorME()
 
 	auth := r.Group("api/v1")
 	auth.Use(jwt.JwtToken())
@@ -153,6 +155,11 @@ func InitRouter() {
 		auth.POST("/backend/usertotopic/list", usertotopic.ListUserToTopics)
 		auth.POST("/backend/usertotopic/:topicId", usertotopic.ListUserToTopicsByTopicId)
 		auth.PUT("/backend/usertotopic/update", usertotopic.UpdateUserToTopic)
+
+		auth.GET("/backend/health", sd.HealthCheck)
+		auth.GET("/backend/disk", sd.DiskCheck)
+		auth.GET("/backend/cpu", sd.CPUCheck)
+		auth.GET("/backend/ram", sd.RAMCheck)
 	}
 
 	router := r.Group("api/v1")

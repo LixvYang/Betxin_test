@@ -3,15 +3,16 @@ package administrator
 import (
 	v1 "betxin/api/v1"
 	"betxin/model"
+	"betxin/utils"
 	"betxin/utils/errmsg"
 
 	"github.com/gin-gonic/gin"
 )
 
-func CreateAdministratorLixin() {
+func CreateAdministratorME() {
 	d := &model.Administrator{
-		Username: "Lixin",
-		Password: "123123123",
+		Username: utils.Username,
+		Password: utils.Password,
 	}
 	if code := model.CreateAdministrator(d); code != errmsg.SUCCSE {
 		return
