@@ -31,7 +31,7 @@ func MixinOauth(c *gin.Context) {
 	userinfo, err := service.GetUserInfo(access_token)
 	if err != nil {
 		log.Println("Get userInfo fail!!!")
-		c.Redirect(http.StatusPermanentRedirect, fmt.Sprint("http://localhost:8080", pathUrl))
+		c.Redirect(http.StatusPermanentRedirect, fmt.Sprint(utils.IP+utils.HttpPort+pathUrl))
 	}
 
 	user := model.User{
@@ -68,45 +68,5 @@ func MixinOauth(c *gin.Context) {
 		session.Save()
 	}
 
-	c.Redirect(http.StatusPermanentRedirect, fmt.Sprint("http://localhost:3001", pathUrl))
+	c.Redirect(http.StatusPermanentRedirect, fmt.Sprint(utils.IP+utils.HttpPort+pathUrl))
 }
-
-// func MixinOauth(c *gin.Context) {
-// 	var code = c.Query("code")
-// 	key := mixin.GenerateEd25519Key()
-// 	store, err := mixin.AuthorizeEd25519(c, utils.ClientId, utils.AppSecret, code, "", key)
-// 	authorizationID = store.AuthID
-// 	if err != nil {
-// 		log.Printf("AuthorizeEd25519: %v", err)
-// 		return
-// 	}
-
-// 	client, err := mixin.NewFromOauthKeystore(store)
-// 	if err != nil {
-// 		log.Panicln(err)
-// 	}
-
-// 	user, err := client.UserMe(c)
-// 	if err != nil {
-// 		log.Printf("UserMe: %v", err)
-// 		return
-// 	}
-// 	log.Println("user", user.UserID)
-
-// 	// snapshots, _ := client.ReadSnapshots(c, "", time.Now(), "", 10)
-// 	// for _, snapshot := range snapshots {
-// 	// 	fmt.Println("snapshot.TraceID" + snapshot.TraceID)
-// 	// 	fmt.Println("snapshot.Receiver" + snapshot.Receiver)
-// 	// 	fmt.Println("snapshot.OpponentID" + snapshot.OpponentID)
-// 	// 	fmt.Println("snapshot.Sender" + snapshot.Sender)
-// 	// }
-
-// 	snapshots, _ := client.ReadSnapshotsWithOptions(c, time.Now(),  10, mixin.ReadSnapshotsOptions{})
-// 	for _, snapshot := range snapshots {
-// 		fmt.Println("snapshot.TraceID" + snapshot.TraceID)
-// 		fmt.Println("snapshot.Receiver" + snapshot.Receiver)
-// 		fmt.Println("snapshot.OpponentID" + snapshot.OpponentID)
-// 		fmt.Println("snapshot.Sender" + snapshot.Sender)
-// 	}
-
-// }

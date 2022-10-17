@@ -7,9 +7,13 @@ import (
 )
 
 var (
+	IP string
 	AppMode  string
 	HttpPort string
 	JwtKey   string
+
+	Username string
+	Password string
 
 	Db         string
 	DbHost     string
@@ -82,6 +86,7 @@ func init() {
 	}
 
 	LoadServer(f)
+	LoadAdmin(f)
 	LoadData(f)
 	LoadMixinBot(f)
 	LoadRedis(f)
@@ -90,9 +95,15 @@ func init() {
 }
 
 func LoadServer(file *ini.File) {
+	IP = file.Section("server").Key("IP").MustString("")
 	AppMode = file.Section("server").Key("AppMode").MustString("debug")
 	HttpPort = file.Section("server").Key("HttpPort").MustString(":3000")
 	JwtKey = file.Section("server").Key("JwtKey").MustString("")
+}
+
+func LoadAdmin(file *ini.File) {
+	Username = file.Section("administrator").Key("Username").MustString("")
+	Password = file.Section("administrator").Key("Password").MustString("")
 }
 
 func LoadData(file *ini.File) {
