@@ -12,7 +12,7 @@ import (
 type MixinNetworkSnapshot struct {
 	SnapshotId     string          `gorm:"type:varchar(50)" json:"snapshot_id"`
 	TraceId        string          `gorm:"type:varchar(50);not null;" json:"trace_id"`
-	AssetId        string          `gorm:"type:varchar(50);not null;index" json:"asset_id"`
+	AssetId        string          `gorm:"type:varchar(50);index" json:"asset_id"`
 	OpponentID     string          `gorm:"type:varchar(50)" json:"opponent_id"`
 	Amount         decimal.Decimal `gorm:"type:decimal(16, 8)" json:"amount"`
 	Memo           string          `gorm:"type:varchar(200)" json:"memo"`
@@ -67,19 +67,25 @@ func UpdateMixinNetworkSnapshot(traceId string, data *MixinNetworkSnapshot) int 
 	}
 
 	// 锁住指定 id 的 User 记录
-	if err := tx.Set("gorm:query_option", "FOR UPDATE").Last(&MixinNetworkSnapshot{}, traceId).Error; err != nil {
+	if err := tx.Set("gorm:query_option", "FOR UPDATE").Where("trace_id = ?", traceId).Last(&MixinNetworkSnapshot{}).Error; err != nil {
 		tx.Rollback()
 		return errmsg.ERROR
 	}
 
 	var maps = make(map[string]interface{})
+	maps["snapshot_id"] = data.SnapshotId
 	maps["asset_id"] = data.AssetId
 	maps["opponent_id"] = data.OpponentID
 	maps["amount"] = data.Amount
+	maps["memo"] = data.Memo
+	maps["type"] = data.Type
+	maps["opening_balance"] = data.OpeningBalance
+	maps["closing_balance"] = data.ClosingBalance
 
-	if err := db.Model(&Category{}).Where("trace_id = ? ", traceId).Updates(maps).Error; err != nil {
+	if err := db.Model(&MixinNetworkSnapshot{}).Where("trace_id = ? ", traceId).Updates(maps).Error; err != nil {
 		return errmsg.ERROR
 	}
+
 	if err := tx.Commit().Error; err != nil {
 		return errmsg.ERROR
 	}

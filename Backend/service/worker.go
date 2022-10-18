@@ -14,6 +14,7 @@ import (
 
 	"github.com/fox-one/mixin-sdk-go"
 	"github.com/jasonlvhit/gocron"
+	uuid "github.com/satori/go.uuid"
 	"github.com/shopspring/decimal"
 )
 
@@ -155,10 +156,11 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 }
 
 func SwapOrderToPusd(ctx context.Context, client *mixin.Client, Amount decimal.Decimal, InputAssetId string, snapshot *mixin.Snapshot) *mixin.RawTransaction {
-	tx, err := Transaction(ctx, client, Amount, InputAssetId)
+	tx, err := TransactionWithRetry(ctx, client, Amount, InputAssetId)
 	if err != nil {
-		log.Println("swap交易失败")
-		Transfer(ctx, client, InputAssetId, snapshot.OpponentID, snapshot.Amount, "交易失败")
+		uuid := uuid.NewV4()
+		model.CreateSendBack(&model.SendBack{TraceId: uuid.String()})
+		err := TransferReturnWithRetry(ctx, client, uuid.String(), InputAssetId, snapshot.OpponentID, snapshot.Amount, "Swap 失败")
 		switch {
 		case mixin.IsErrorCodes(err, mixin.InsufficientBalance):
 			log.Println("insufficient balance")
@@ -177,20 +179,8 @@ func SwapOrderToPusd(ctx context.Context, client *mixin.Client, Amount decimal.D
 		State:      tx.State,
 	}
 
-	// 加入数据库
-	log.Println("加入数据库")
 	if code := model.CreateSwapOrder(date); code != errmsg.SUCCSE {
 		return nil
 	}
 	return tx
-}
-
-func ReturnAssetToBot(ctx context.Context, client, subClient *mixin.Client, snapshot *mixin.Snapshot) error {
-	memo := "sub client return"
-	_, err := Transfer(ctx, subClient, snapshot.AssetID, client.ClientID, snapshot.Amount, memo)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	return nil
 }

@@ -14,7 +14,7 @@ func main() {
 	var ctx = context.Background()
 	betxinredis.NewRedisClient(ctx)
 	service.NewMixinClient()
-	go dailycurrency.DailyCurrency(ctx)
+	dailycurrency.DailyCurrency(ctx)
 	go service.Worker(ctx, service.MixinClient())
 	router.InitRouter()
 }

@@ -5,7 +5,6 @@ import (
 	"betxin/service"
 	"betxin/utils"
 	"betxin/utils/errmsg"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -31,7 +30,7 @@ func MixinOauth(c *gin.Context) {
 	userinfo, err := service.GetUserInfo(access_token)
 	if err != nil {
 		log.Println("Get userInfo fail!!!")
-		c.Redirect(http.StatusPermanentRedirect, fmt.Sprint(utils.IP+utils.HttpPort+pathUrl))
+		c.Redirect(http.StatusPermanentRedirect, utils.IP+utils.HttpPort+pathUrl)
 	}
 
 	user := model.User{
@@ -68,5 +67,5 @@ func MixinOauth(c *gin.Context) {
 		session.Save()
 	}
 
-	c.Redirect(http.StatusPermanentRedirect, fmt.Sprint(utils.IP+utils.HttpPort+pathUrl))
+	c.Redirect(http.StatusPermanentRedirect, utils.IP+utils.HttpPort)
 }

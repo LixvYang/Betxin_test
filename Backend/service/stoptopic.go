@@ -5,8 +5,8 @@ import (
 	"betxin/utils"
 	"betxin/utils/errmsg"
 	"context"
+	"fmt"
 	"log"
-	"sync"
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/shopspring/decimal"
@@ -14,14 +14,15 @@ import (
 
 type UserBounse struct {
 	percentage decimal.Decimal
+	TraceId    string
 	UserId     string
+	Memo       string
 }
 
 func EndOfTopic(c context.Context, tid string, win string) {
-	var wg sync.WaitGroup
 	var code int
 	var userTotopics []model.UserToTopic
-	var totalPrice int
+	var totalPrice int64
 	var userBounses []UserBounse
 	data := &model.Bonuse{}
 
@@ -29,42 +30,37 @@ func EndOfTopic(c context.Context, tid string, win string) {
 	if code != errmsg.SUCCSE {
 		return
 	}
+
 	userTotopics, _, code = model.ListUserToTopicsWin(tid, win)
 	if code != errmsg.SUCCSE {
 		return
 	}
 
-	for i := 0; i < len(userTotopics); i++ {
-		wg.Add(1)
-		go func(userToTopic model.UserToTopic) {
-			defer wg.Done()
-			data.Tid = userToTopic.Tid
-			data.Amount = userToTopic.YesRatioPrice.Div(decimal.NewFromInt(int64(totalPrice)))
-			data.AssetId = utils.PUSD
-			data.Tid = tid
-			data.Memo = "bounse from betxin"
-			data.UserId = userToTopic.UserId
-			data.TraceId = uuid.NewV4().String()
-			if win == "yes_win" {
-				userBounses = append(userBounses, UserBounse{percentage: data.Amount, UserId: data.UserId})
-			} else {
-				userBounses = append(userBounses, UserBounse{percentage: data.Amount, UserId: data.UserId})
-			}
-			if code = model.CreateBonuse(data); code != errmsg.SUCCSE {
-				log.Println("创建奖金出错")
-				return
-			}
-		}(userTotopics[i])
+	for _, userToTopic := range userTotopics {
+		data.Tid = tid
+		if win == "yes_win" {
+			data.Amount = userToTopic.YesRatioPrice.Div(decimal.NewFromInt(totalPrice))
+		} else {
+			data.Amount = userToTopic.NoRatioPrice.Div(decimal.NewFromInt(totalPrice))
+		}
+		data.AssetId = utils.PUSD
+		data.Memo = fmt.Sprintln("bonuse from betxin" + userToTopic.Topic.Intro)
+		data.UserId = userToTopic.UserId
+		data.TraceId = uuid.NewV4().String()
+		userBounses = append(userBounses, UserBounse{percentage: data.Amount, UserId: data.UserId, TraceId: data.TraceId, Memo: data.Memo})
+		if code = model.CreateBonuse(data); code != errmsg.SUCCSE {
+			log.Println("创建奖金出错")
+			return
+		}
+		snapShot := &model.MixinNetworkSnapshot{
+			TraceId: data.TraceId,
+		}
+		model.CreateMixinNetworkSnapshot(snapShot)
 	}
-	wg.Wait()
 
-	// 给用户转账
+	// send for users
 	for _, userBounse := range userBounses {
-		wg.Add(1)
-		go func(c context.Context, userBounse UserBounse) {
-			defer wg.Done()
-			Transfer(c, mixinClient, utils.PUSD, userBounse.UserId, userBounse.percentage.Mul(decimal.NewFromInt(int64(totalPrice))), "")
-		}(c, userBounse)
+		TransferWithRetry(c, mixinClient, userBounse.TraceId, utils.PUSD, userBounse.UserId, userBounse.percentage.Mul(decimal.NewFromInt(int64(totalPrice))), userBounse.Memo)
+
 	}
-	wg.Wait()
 }

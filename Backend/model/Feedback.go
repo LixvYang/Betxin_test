@@ -21,19 +21,18 @@ func CreateFeedBack(data *FeedBack) int {
 	return errmsg.SUCCSE
 }
 
-func ListFeedBack() ([]FeedBack, int, int) {
+func ListFeedBack(offset, limit int) ([]FeedBack, int, int) {
 	var feedback []FeedBack
-	var err error
 	var total int64
-
-	err = db.Model(&feedback).Count(&total).Error
+	var err error
+	err = db.Model(&FeedBack{}).Count(&total).Error
+	err = db.Model(&FeedBack{}).Limit(limit).Offset(offset).Order("created_at DESC").Find(&feedback).Error
 	if err != nil {
 		return nil, 0, errmsg.ERROR
 	}
 	return feedback, int(total), errmsg.SUCCSE
 }
 
-// 根据user_id获取messages
 func ListFeedBackByUserId(user_id string) ([]FeedBack, int, int) {
 	var message []FeedBack
 	var err error
@@ -47,8 +46,8 @@ func ListFeedBackByUserId(user_id string) ([]FeedBack, int, int) {
 	return message, int(total), errmsg.SUCCSE
 }
 
-func DeleteFeedBackByMessageId(id string) int {
-	if err := db.Where("id = ?", id).Delete(&MixinMessage{}).Error; err != nil {
+func DeleteFeedBackById(id string) int {
+	if err := db.Where("id = ?", id).Delete(&FeedBack{}).Error; err != nil {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE

@@ -11,6 +11,7 @@ import (
 	"betxin/api/v1/message"
 	"betxin/api/v1/mixinorder"
 	"betxin/api/v1/oauth"
+	"betxin/api/v1/sendback"
 	"betxin/api/v1/snapshot"
 	"betxin/api/v1/swaporder"
 	"betxin/api/v1/topic"
@@ -63,14 +64,15 @@ func InitRouter() {
 	r.POST("/api/v1/backend/login", administrator.Login)
 	r.GET("/oauth/redirect", oauth.MixinOauth)
 	r.POST("/api/v1/topic/list", topic.ListTopics)
-	r.POST("/api/v1/category/list", category.ListCategories)
+	r.POST("/api/v1/topic/search", topic.GetTopicByTitle)
 	r.POST("/api/v1/topic/:cid", topic.GetTopicByCid)
+	r.POST("/api/v1/category/list", category.ListCategories)
 	r.POST("/api/v1/currency/list", currency.ListCurrencies)
 	r.POST("/api/v1/feedback/add", feedback.CreateFeedback)
 	r.GET("/api/v1/topic/:tid", topic.GetTopicInfoById)
 	r.POST("/api/v1/usertotopic/check", usertotopic.CheckUserToTopic)
 	r.POST("/api/v1/usertotopic/:id", usertotopic.GetUserToTopic)
-	administrator.CreateAdministratorME()
+	// administrator.CreateAdministratorME()
 
 	auth := r.Group("api/v1")
 	auth.Use(jwt.JwtToken())
@@ -155,6 +157,15 @@ func InitRouter() {
 		auth.POST("/backend/usertotopic/list", usertotopic.ListUserToTopics)
 		auth.POST("/backend/usertotopic/:topicId", usertotopic.ListUserToTopicsByTopicId)
 		auth.PUT("/backend/usertotopic/update", usertotopic.UpdateUserToTopic)
+
+		// feedback
+		auth.POST("/backend/feedback/list", feedback.ListFeedBack)
+		auth.DELETE("/backend/feedback/:id", feedback.DeleteFeedBack)
+
+		// sendback
+		auth.POST("/backend/sendback/list", sendback.ListSendBack)
+		auth.DELETE("/backend/sendback/:id", sendback.DeleteSendback)
+		auth.POST("/backend/sendback/add", feedback.CreateFeedback)
 
 		auth.GET("/backend/health", sd.HealthCheck)
 		auth.GET("/backend/disk", sd.DiskCheck)

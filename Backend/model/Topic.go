@@ -94,12 +94,12 @@ func StopTopic(tid string) int {
 	return errmsg.SUCCSE
 }
 
-func GetTopicTotalPrice(tid string) (int, int) {
+func GetTopicTotalPrice(tid string) (int64, int) {
 	var topic Topic
 	if err := db.Model(&Topic{}).Where("tid = ?", tid).First(&topic).Error; err != nil {
-		return int(topic.TotalPrice.IntPart()), errmsg.ERROR
+		return topic.TotalPrice.IntPart(), errmsg.ERROR
 	}
-	return int(topic.TotalPrice.IntPart()), errmsg.SUCCSE
+	return topic.TotalPrice.IntPart(), errmsg.SUCCSE
 }
 
 // GetCateArt 查询分类下的所有话题
@@ -232,25 +232,8 @@ func SearchTopic(offset int, limit int, query interface{}, args ...interface{}) 
 	var total int64
 	err = db.Select("tid, cid, title, intro, collect_count, yes_ratio, no_ratio, yes_ratio_price, no_ratio_price, total_price, read_count,img_url, end_time, Category.category_name, Category.id, created_at, updated_at, is_stop").
 		Order("Created_At DESC").Joins("Category").Where(query, args...).Limit(limit).Offset(offset).Find(&topicList).Count(&total).Error
-	//单独计数
-	// db.Model(&topicList).Count(&total)
 	if err != nil {
 		return nil, int(total), errmsg.ERROR
 	}
 	return topicList, int(total), errmsg.SUCCSE
 }
-
-// // 搜索标题
-// func SearchTopic(title, content, intro string, offset int, limit int) ([]Topic, int, int) {
-// 	var topicList []Topic
-// 	var err error
-// 	var total int64
-// 	err = db.Select("tid, cid, title, intro,  content, collect_count, yes_ratio, no_ratio, yes_ratio_price, no_ratio_price, total_price, read_count, Category.category_name, Category.id, created_at, updated_at").
-// 		Order("Created_At DESC").Joins("Category").Where("title LIKE ? OR content = ? OR intro = ?", "%"+title+"%", "%"+content+"%", "%"+intro+"%").Limit(limit).Offset(offset).Find(&topicList).Error
-// 	//单独计数
-// 	db.Model(&topicList).Where("title LIKE ? OR content = ? OR intro = ?", "%"+title+"%", "%"+content+"%", "%"+intro+"%").Count(&total)
-// 	if err != nil {
-// 		return nil, int(total), errmsg.ERROR
-// 	}
-// 	return topicList, int(total), errmsg.SUCCSE
-// }

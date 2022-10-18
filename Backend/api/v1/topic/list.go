@@ -5,6 +5,7 @@ import (
 	"betxin/model"
 	"betxin/utils/convert"
 	"betxin/utils/errmsg"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +18,7 @@ type ListResponse struct {
 type ListRequest struct {
 	Offset int    `json:"offset"`
 	Limit  int    `json:"limit"`
-	Title  string `json:"title"`
+	Intro  string `json:"intro"`
 	Cid    string `json:"cid"`
 }
 
@@ -33,22 +34,10 @@ func ListTopics(c *gin.Context) {
 		return
 	}
 
-	if r.Title == "" && r.Cid == "" {
-		data, total, code = model.ListTopics(r.Offset, r.Limit)
-		if code != errmsg.SUCCSE {
-			v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
-			return
-		}
-	} else if r.Title != "" {
-		data, total, code = model.SearchTopic(r.Offset, r.Limit, "title LIKE ?", r.Title+"%")
-		if code != errmsg.SUCCSE {
-			v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
-		}
-	} else if r.Cid != "" {
-		data, total, code = model.SearchTopic(r.Offset, r.Limit, "cid = ?", r.Cid)
-		if code != errmsg.SUCCSE {
-			v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
-		}
+	data, total, code = model.ListTopics(r.Offset, r.Limit)
+	if code != errmsg.SUCCSE {
+		v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
+		return
 	}
 
 	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
@@ -116,22 +105,46 @@ func GetTopicByCid(c *gin.Context) {
 		return
 	}
 
-	//
-	// topics = convert.Marshal(&data)
-	// betxinredis.Set(v1.TOPIC_LIST_FROMCATE_TOTAL+cid, total, v1.REDISEXPIRE)
-	// betxinredis.Set(v1.TOPIC_LIST_FROMCATE+cid, topics+cid, v1.REDISEXPIRE)
-
-	// v1.SendResponse(c, errmsg.SUCCSE, &ListResponse{
-	// 	TotalCount: total,
-	// 	List:       data,
-	// })
-	// } else if err != nil {
-	// 	v1.SendResponse(c, errmsg.ERROR, nil)
-	// 	return
-	// } else {
 	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
 		TotalCount: total,
 		List:       data,
 	})
 	// }
+}
+
+// GetTopicByCid 通过种类id获取信息
+func GetTopicByTitle(c *gin.Context) {
+	var data []model.Topic
+	var total int
+	var code int
+	var err error
+
+	var r ListRequest
+	if err = c.ShouldBindJSON(&r); err != nil {
+		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
+		return
+	}
+
+	fmt.Println(r)
+
+	switch {
+	case r.Offset >= 100:
+		r.Offset = 100
+	case r.Limit <= 0:
+		r.Limit = 10
+	}
+
+	if r.Limit == 0 {
+		r.Limit = 10
+	}
+	data, total, code = model.SearchTopic(r.Offset, r.Limit, "intro LIKE  ?", "%"+r.Intro+"%")
+	if code != errmsg.SUCCSE {
+		v1.SendResponse(c, errmsg.ERROR_GET_TOPIC, nil)
+		return
+	}
+
+	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+		TotalCount: total,
+		List:       data,
+	})
 }
