@@ -5,6 +5,7 @@ import (
 	"betxin/utils"
 	"betxin/utils/errmsg"
 	"context"
+	"fmt"
 	"log"
 	"sort"
 	"time"
@@ -38,7 +39,7 @@ func TransferReturn(ctx context.Context, client *mixin.Client, TraceId string, A
 		TraceID:    TraceId,
 		Memo:       Memo,
 	}
-	
+
 	tx, err := client.Transfer(ctx, transferInput, utils.Pin)
 	if err != nil {
 		return err
@@ -64,6 +65,7 @@ func TransferReturn(ctx context.Context, client *mixin.Client, TraceId string, A
 func TransferWithRetry(ctx context.Context, client *mixin.Client, TraceId string, AssetID string, OpponentID string, Amount decimal.Decimal, Memo string) error {
 	return retry.Do(
 		func() error {
+			fmt.Println("尝试转载")
 			err := Transfer(ctx, mixinClient, TraceId, AssetID, OpponentID, Amount, Memo)
 			if err != nil {
 				return err

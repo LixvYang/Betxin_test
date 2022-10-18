@@ -100,6 +100,7 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 	}
 
 	if code := model.CreateMixinOrder(&r); code != errmsg.SUCCSE {
+		log.Println("创建CreateMixinOrder错误")
 		return errors.New("")
 	}
 
@@ -146,10 +147,12 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 	data.Tid = memo.Tid
 
 	if code := model.CreateUserToTopic(&data); code != errmsg.SUCCSE {
+		log.Println("CreateUserToTopic错误")
 		return err
 	}
 
 	if code := model.UpdateTopicTotalPrice(data.Tid, selectWin, userTotalPrice); code != errmsg.SUCCSE {
+		log.Println("UpdateTopicTotalPrice错误")
 		return err
 	}
 	return nil
