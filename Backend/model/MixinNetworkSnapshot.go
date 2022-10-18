@@ -56,39 +56,26 @@ func GetMixinNetworkSnapshot(traceId string) (MixinNetworkSnapshot, int) {
 }
 
 func UpdateMixinNetworkSnapshot(traceId string, data *MixinNetworkSnapshot) int {
-	tx := db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-	if err := tx.Error; err != nil {
-		return errmsg.ERROR
-	}
 
 	// 锁住指定 id 的 User 记录
-	if err := tx.Set("gorm:query_option", "FOR UPDATE").Where("trace_id = ?", traceId).Last(&MixinNetworkSnapshot{}).Error; err != nil {
-		tx.Rollback()
+	if err := db.Exec("update mixin_network_snapshot set snapshot_id = ?  where trace_id = ?", data.SnapshotId, traceId).Error; err != nil {
 		return errmsg.ERROR
 	}
+	// if err := tx.Set("gorm:query_option", "FOR UPDATE").Where("trace_id = ?", traceId).Model(&MixinNetworkSnapshot{}).Error; err != nil {
+	// 	tx.Rollback()
+	// 	return errmsg.ERROR
+	// }
 
-	var maps = make(map[string]interface{})
-	maps["snapshot_id"] = data.SnapshotId
-	maps["asset_id"] = data.AssetId
-	maps["opponent_id"] = data.OpponentID
-	maps["amount"] = data.Amount
-	maps["memo"] = data.Memo
-	maps["type"] = data.Type
-	maps["opening_balance"] = data.OpeningBalance
-	maps["closing_balance"] = data.ClosingBalance
+	// var maps = make(map[string]interface{})
+	// maps["snapshot_id"] = data.SnapshotId
+	// maps["asset_id"] = data.AssetId
+	// maps["opponent_id"] = data.OpponentID
+	// maps["amount"] = data.Amount
+	// maps["memo"] = data.Memo
+	// maps["type"] = data.Type
+	// maps["opening_balance"] = data.OpeningBalance
+	// maps["closing_balance"] = data.ClosingBalance
 
-	if err := db.Model(&MixinNetworkSnapshot{}).Where("trace_id = ? ", traceId).Updates(maps).Error; err != nil {
-		return errmsg.ERROR
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		return errmsg.ERROR
-	}
 	return errmsg.SUCCSE
 }
 

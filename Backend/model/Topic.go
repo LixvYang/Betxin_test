@@ -4,6 +4,7 @@ import (
 	"betxin/utils/errmsg"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"gorm.io/gorm"
@@ -82,11 +83,10 @@ func StopTopic(tid string) int {
 	fmt.Println(maps)
 	fmt.Println(tid)
 
-	if err := db.Model(&Topic{}).Where("tid = ?", tid).Updates(maps).Error; err != nil {
+	if err := db.Exec("update topic set is_stop = 1 where tid = ?", tid).Error; err != nil {
 		tx.Rollback()
 		return errmsg.ERROR
 	}
-
 	if err := tx.Commit().Error; err != nil {
 		return errmsg.ERROR
 	}
@@ -94,12 +94,13 @@ func StopTopic(tid string) int {
 	return errmsg.SUCCSE
 }
 
-func GetTopicTotalPrice(tid string) (int64, int) {
+func GetTopicTotalPrice(tid string) (decimal.Decimal, int) {
+	decimal.DivisionPrecision = 2
 	var topic Topic
 	if err := db.Model(&Topic{}).Where("tid = ?", tid).First(&topic).Error; err != nil {
-		return topic.TotalPrice.IntPart(), errmsg.ERROR
+		return topic.TotalPrice, errmsg.ERROR
 	}
-	return topic.TotalPrice.IntPart(), errmsg.SUCCSE
+	return topic.TotalPrice, errmsg.SUCCSE
 }
 
 // GetCateArt 查询分类下的所有话题
@@ -195,13 +196,41 @@ func UpdateTopicTotalPrice(tid string, selectWin string, plusPrice decimal.Decim
 		tx.Rollback()
 		return errmsg.ERROR
 	}
-
-	db.Model(&Topic{}).Where("tid = ?", tid).Update("total_price", gorm.Expr("total_price + ?", plusPrice))
-
+	fmt.Println("更新话题总价钱")
+	// db.Model(&Topic{}).Where("tid = ?", tid).Update("total_price", gorm.Expr("total_price + ?", plusPrice))
+	var mutex sync.Mutex
+	mutex.Lock()
+	err := db.Exec("update topic set total_price = total_price + ? where tid = ?", plusPrice, tid).Error
+	if err != nil {
+		fmt.Errorf("error: ", err)
+	}
+	mutex.Unlock()
 	if selectWin == "yes_win" {
-		db.Model(&Topic{}).Where("tid = ?", tid).Update("yes_ratio", gorm.Expr("(? + yes_ratio_price)/total_price", plusPrice)).Update("yes_ratio_price", gorm.Expr("yes_ratio_price + ?", plusPrice))
+		err = db.Exec("update topic set yes_ratio = (? + yes_ratio_price)/total_price where tid = ?", plusPrice, tid).Error
+		if err != nil {
+			fmt.Errorf("error: ", err)
+		}
+		err = db.Exec("update topic set yes_ratio_price = yes_ratio_price + ? where tid = ?", plusPrice, tid).Error
+		if err != nil {
+			fmt.Errorf("error: ", err)
+		}
+		err = db.Exec("update topic set no_ratio = no_ratio_price/total_price where tid = ?", tid).Error
+		if err != nil {
+			fmt.Errorf("error: ", err)
+		}
 	} else {
-		db.Model(&Topic{}).Where("tid = ?", tid).Update("no_ratio", gorm.Expr("(? + no_ratio_price)/total_price", plusPrice)).Update("no_ratio_price", gorm.Expr("no_ratio_price + ?", plusPrice))
+		err = db.Exec("update topic set no_ratio = (? + no_ratio_price)/total_price where tid = ?", plusPrice, tid).Error
+		if err != nil {
+			fmt.Errorf("error: ", err)
+		}
+		err = db.Exec("update topic set no_ratio_price = no_ratio_price + ? where tid = ?", plusPrice, tid).Error
+		if err != nil {
+			fmt.Errorf("error: ", err)
+		}
+		err = db.Exec("update topic set yes_ratio = yes_ratio_price/total_price where tid = ?", tid).Error
+		if err != nil {
+			fmt.Errorf("error: ", err)
+		}
 	}
 
 	if err := tx.Commit().Error; err != nil {

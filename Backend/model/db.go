@@ -62,21 +62,21 @@ func InitDb() {
 
 	// 迁移数据表，在没有数据表结构变更时候，建议注释不执行
 	db.AutoMigrate(
-		&User{},
-		&Category{},
-		&Topic{},
-		&Collect{},
-		&Bonuse{},
-		&Currency{},
-		&MixinMessage{},
-		&SwapOrder{},
-		&MixinNetworkSnapshot{},
-		&UserAuthorization{},
+		// &User{},
+		// &Category{},
+		// &Topic{},
+		// &Collect{},
+		// &Bonuse{},
+		// &Currency{},
+		// &MixinMessage{},
+		// &SwapOrder{},
+		// &MixinNetworkSnapshot{},
+		// &UserAuthorization{},
 		&MixinOrder{},
-		&UserToTopic{},
-		&Administrator{},
-		&FeedBack{},
-		&SendBack{},
+		// &UserToTopic{},
+		// &Administrator{},
+		// &FeedBack{},
+		// &SendBack{},
 	)
 
 	sqlDB, _ := db.DB()

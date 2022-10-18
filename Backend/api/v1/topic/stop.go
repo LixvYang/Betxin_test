@@ -5,6 +5,7 @@ import (
 	"betxin/model"
 	"betxin/service"
 	"betxin/utils/errmsg"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,6 +26,7 @@ func StopTopic(c *gin.Context) {
 	}
 
 	if code := model.StopTopic(r.Tid); code != errmsg.SUCCSE {
+		fmt.Println("停止话题出错")
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}

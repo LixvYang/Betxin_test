@@ -28,7 +28,7 @@ func CheckUserToTopic(userId, tid string) int {
 	return errmsg.SUCCSE
 }
 
-func GetUserToTopic(userId, tid string) (UserToTopic,  int) {
+func GetUserToTopic(userId, tid string) (UserToTopic, int) {
 	var userToTopic UserToTopic
 	db.Model(&UserToTopic{}).Where("user_id = ? AND tid = ?", userId, tid).Last(&userToTopic)
 	if userToTopic.Id == 0 {
@@ -135,12 +135,12 @@ func ListUserToTopicsWin(tid string, win string) ([]UserToTopic, int, int) {
 	}
 
 	if win == "yes_win" {
-		db = db.Where("yes_ratio_price >= 0")
+		db = db.Where("yes_ratio_price > 0")
 	} else {
-		db = db.Where("no_ratio_price >= 0")
+		db = db.Where("no_ratio_price > 0")
 	}
 
-	if err := db.Preload("Topic").Model(&UserToTopic{}).Select("user_id, tid, yes_ratio_price, no_ratio_price, topic.intro").Where("tid = ?", tid).Find(&userToTopics).Error; err != nil {
+	if err := db.Model(&UserToTopic{}).Select("user_id, tid, no_ratio_price, yes_ratio_price").Where("tid = ?", tid).Find(&userToTopics).Error; err != nil {
 		return userToTopics, 0, errmsg.ERROR
 	}
 	return userToTopics, int(count), errmsg.SUCCSE
