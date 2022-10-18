@@ -67,5 +67,5 @@ func MixinOauth(c *gin.Context) {
 		session.Save()
 	}
 
-	c.Redirect(http.StatusPermanentRedirect, utils.IP+utils.HttpPort)
+	c.Redirect(http.StatusPermanentRedirect, utils.DomainName)
 }
