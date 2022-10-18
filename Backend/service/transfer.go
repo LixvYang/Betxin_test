@@ -7,7 +7,9 @@ import (
 	"context"
 	"log"
 	"sort"
+	"time"
 
+	"github.com/avast/retry-go"
 	fswap "github.com/fox-one/4swap-sdk-go"
 	"github.com/fox-one/4swap-sdk-go/mtg"
 	"github.com/fox-one/mixin-sdk-go"
@@ -15,36 +17,110 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func Transfer(ctx context.Context, client *mixin.Client, AssetID string, OpponentID string, Amount decimal.Decimal, Memo string) (*mixin.Snapshot, error) {
+func TransferReturnWithRetry(ctx context.Context, client *mixin.Client, TraceId string, AssetID string, OpponentID string, Amount decimal.Decimal, Memo string) error {
+	return retry.Do(
+		func() error {
+			err := TransferReturn(ctx, mixinClient, TraceId, AssetID, OpponentID, Amount, Memo)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+		retry.Delay(time.Second*2),
+	)
+}
+
+func TransferReturn(ctx context.Context, client *mixin.Client, TraceId string, AssetID string, OpponentID string, Amount decimal.Decimal, Memo string) error {
 	transferInput := &mixin.TransferInput{
 		AssetID:    AssetID,
 		OpponentID: OpponentID,
 		Amount:     Amount,
-		TraceID:    mixin.RandomTraceID(),
+		TraceID:    TraceId,
+		Memo:       Memo,
+	}
+	
+	tx, err := client.Transfer(ctx, transferInput, utils.Pin)
+	if err != nil {
+		return err
+	}
+
+	data := &model.SendBack{
+		Type:       tx.Type,
+		SnapshotId: tx.SnapshotID,
+		OpponentID: tx.OpponentID,
+		AssetID:    tx.AssetID,
+		Amount:     tx.Amount,
+		Memo:       tx.Memo,
+	}
+
+	if code := model.UpdateSendBack(TraceId, data); code != errmsg.SUCCSE {
+		log.Println("error to update mixinnetwork snapshot")
+	}
+	return nil
+}
+
+//  count: 尝试发送次数
+//  interval: 第一次失败重试间隔时间(后续间隔翻倍)
+func TransferWithRetry(ctx context.Context, client *mixin.Client, TraceId string, AssetID string, OpponentID string, Amount decimal.Decimal, Memo string) error {
+	return retry.Do(
+		func() error {
+			err := Transfer(ctx, mixinClient, TraceId, AssetID, OpponentID, Amount, Memo)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+		retry.Delay(time.Second*2),
+	)
+}
+
+func Transfer(ctx context.Context, client *mixin.Client, TraceId string, AssetID string, OpponentID string, Amount decimal.Decimal, Memo string) error {
+	transferInput := &mixin.TransferInput{
+		AssetID:    AssetID,
+		OpponentID: OpponentID,
+		Amount:     Amount,
+		TraceID:    TraceId,
 		Memo:       Memo,
 	}
 	tx, err := client.Transfer(ctx, transferInput, utils.Pin)
 	if err != nil {
-		log.Println(err)
-		return nil, err
+		return err
 	}
 
 	data := &model.MixinNetworkSnapshot{
-		SnapshotId: tx.SnapshotID,
-		TraceId:    tx.TraceID,
-		AssetId:    tx.AssetID,
-		OpponentID: tx.OpponentID,
-		Amount:     tx.Amount,
-		Memo:       tx.Memo,
-		Type:       tx.Type,
+		SnapshotId:     tx.SnapshotID,
+		AssetId:        tx.AssetID,
+		OpponentID:     tx.OpponentID,
+		Amount:         tx.Amount,
+		Memo:           tx.Memo,
+		Type:           tx.Type,
 		OpeningBalance: tx.OpeningBalance,
 		ClosingBalance: tx.ClosingBalance,
 	}
 
-	if code := model.CreateMixinNetworkSnapshot(data); code != errmsg.SUCCSE {
-		log.Println("error to insert mixinnetwork snapshot")
+	if code := model.UpdateMixinNetworkSnapshot(TraceId, data); code != errmsg.SUCCSE {
+		log.Println("error to update mixinnetwork snapshot")
 	}
-	return tx, nil
+	return nil
+}
+
+//  count: 尝试发送次数
+//  interval: 第一次失败重试间隔时间(后续间隔翻倍)
+func TransactionWithRetry(ctx context.Context, client *mixin.Client, Amount decimal.Decimal, InputAssetID string) (*mixin.RawTransaction, error) {
+	var rawTransaction *mixin.RawTransaction
+	err := retry.Do(
+		func() error {
+			tx, err := Transaction(ctx, client, Amount, InputAssetID)
+			if err != nil {
+				return err
+			}
+			rawTransaction = tx
+			return nil
+		},
+		// 4秒后重试
+		retry.Delay(time.Second*4),
+	)
+	return rawTransaction, err
 }
 
 // 输入数量和输入资产id 输出交易单

@@ -25,6 +25,7 @@ require (
 )
 
 require (
+	github.com/avast/retry-go v2.7.0+incompatible // indirect
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/tklauser/go-sysconf v0.3.10 // indirect

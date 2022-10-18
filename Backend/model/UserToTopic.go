@@ -140,7 +140,7 @@ func ListUserToTopicsWin(tid string, win string) ([]UserToTopic, int, int) {
 		db = db.Where("no_ratio_price >= 0")
 	}
 
-	if err := db.Model(&UserToTopic{}).Select("user_id, tid, yes_ratio_price, no_ratio_price").Where("tid = ?", tid).Find(&userToTopics).Error; err != nil {
+	if err := db.Preload("Topic").Model(&UserToTopic{}).Select("user_id, tid, yes_ratio_price, no_ratio_price, topic.intro").Where("tid = ?", tid).Find(&userToTopics).Error; err != nil {
 		return userToTopics, 0, errmsg.ERROR
 	}
 	return userToTopics, int(count), errmsg.SUCCSE
