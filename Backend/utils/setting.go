@@ -79,7 +79,7 @@ var (
 	ZEN   string
 )
 
-func init() {
+func InitIni() {
 	f, err := ini.Load("config/config.ini")
 	if err != nil {
 		log.Printf("配置文件读取错误:%s", err)
