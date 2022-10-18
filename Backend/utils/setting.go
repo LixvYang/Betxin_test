@@ -7,10 +7,11 @@ import (
 )
 
 var (
-	IP string
-	AppMode  string
-	HttpPort string
-	JwtKey   string
+	DomainName string
+	IP         string
+	AppMode    string
+	HttpPort   string
+	JwtKey     string
 
 	Username string
 	Password string
@@ -95,6 +96,7 @@ func InitIni() {
 }
 
 func LoadServer(file *ini.File) {
+	DomainName = file.Section("server").Key("DomainName").MustString("")
 	IP = file.Section("server").Key("IP").MustString("")
 	AppMode = file.Section("server").Key("AppMode").MustString("")
 	HttpPort = file.Section("server").Key("HttpPort").MustString(":8080")

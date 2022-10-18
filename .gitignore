@@ -2,3 +2,4 @@
 Backend/config/*
 key*
 Backend/log/*
+update.sh
