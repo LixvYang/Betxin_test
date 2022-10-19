@@ -120,7 +120,7 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 	}
 
 	// 用户投入的总价格
-	userTotalPrice, err := CalculateTotalPriceByAssetId(ctx, tx.AssetID, amount)
+	userTotalPrice, err := CalculateTotalPriceByAssetId(ctx, tx.AssetID, amount.Abs())
 	if err != nil {
 		log.Println("计算失败")
 	}
@@ -172,7 +172,7 @@ func SwapOrderToPusd(ctx context.Context, client *mixin.Client, Amount decimal.D
 		}
 	}
 	amount, _ := decimal.NewFromString(tx.Amount)
-	date := &model.SwapOrder{
+	data := &model.SwapOrder{
 		Type:       tx.Type,
 		SnapshotId: tx.SnapshotID,
 		AssetID:    tx.AssetID,
@@ -182,7 +182,7 @@ func SwapOrderToPusd(ctx context.Context, client *mixin.Client, Amount decimal.D
 		State:      tx.State,
 	}
 
-	if code := model.CreateSwapOrder(date); code != errmsg.SUCCSE {
+	if code := model.CreateSwapOrder(data); code != errmsg.SUCCSE {
 		return nil
 	}
 	return tx

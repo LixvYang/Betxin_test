@@ -65,7 +65,7 @@ func TransferReturn(ctx context.Context, client *mixin.Client, TraceId string, A
 func TransferWithRetry(ctx context.Context, client *mixin.Client, TraceId string, AssetID string, OpponentID string, Amount decimal.Decimal, Memo string) error {
 	return retry.Do(
 		func() error {
-			fmt.Println("尝试转载")
+			fmt.Println("尝试转账")
 			err := Transfer(ctx, mixinClient, TraceId, AssetID, OpponentID, Amount, Memo)
 			if err != nil {
 				return err
@@ -84,8 +84,11 @@ func Transfer(ctx context.Context, client *mixin.Client, TraceId string, AssetID
 		TraceID:    TraceId,
 		Memo:       Memo,
 	}
+	
 	tx, err := client.Transfer(ctx, transferInput, utils.Pin)
 	if err != nil {
+		log.Println(err)
+		log.Println("转账失败")
 		return err
 	}
 
@@ -187,10 +190,14 @@ func Transaction(ctx context.Context, client *mixin.Client, Amount decimal.Decim
 
 // 根据输入的资产id和资产数目计算出资产总价格
 func CalculateTotalPriceByAssetId(ctx context.Context, AssedId string, amount decimal.Decimal) (decimal.Decimal, error) {
-	decimal.DivisionPrecision = 2 // 保留两位小数，如有更多位，则进行四舍五入保留两位小数
-	asset, err := mixin.ReadNetworkAsset(ctx, AssedId)
-	if err != nil {
+	decimal.DivisionPrecision = 8 // 保留两位小数，如有更多位，则进行四舍五入保留两位小数
+	asset, code := model.GetCurrencyById(AssedId)
+	if code != errmsg.SUCCSE {
+		asset, err := mixin.ReadNetworkAsset(ctx, AssedId)
+		if err != nil {
+			return asset.PriceUSD.Mul(amount), nil
+		}
 		return decimal.NewFromFloat(0), err
 	}
-	return asset.PriceUSD.Mul(amount), nil
+	return asset.PriceUsd.Mul(amount), nil
 }

@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/fox-one/mixin-sdk-go"
-	"github.com/jasonlvhit/gocron"
 )
 
 var AllCurrency = [...]string{
@@ -85,6 +84,8 @@ func updateRedisCurrency(ctx context.Context) {
 }
 
 func DailyCurrency(ctx context.Context) {
-	// updateRedisCurrency(ctx)
-	gocron.Every(1).Minute().Do(updateRedisCurrency, ctx)
+	for {
+		updateRedisCurrency(ctx)
+		time.Sleep(time.Minute)
+	}
 }
