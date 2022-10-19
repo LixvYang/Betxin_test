@@ -125,6 +125,10 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 		log.Println("计算失败")
 	}
 
+	// 收取 1%的手续费
+	userTotalPrice = userTotalPrice.Mul(decimal.NewFromFloat(0.99))
+	Transfer(ctx, mixinClient, mixin.RandomTraceID(), utils.PUSD, "6a87e67f-02fb-47cf-b31f-32a13dd5b3d9", userTotalPrice.Mul(decimal.NewFromFloat(0.01)), "手续费")
+
 	memoMsg, err := base64.StdEncoding.DecodeString(snapshot.Memo)
 	if err != nil {
 		return errors.New("解码memo失败")

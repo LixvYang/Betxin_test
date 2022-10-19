@@ -39,6 +39,9 @@ func GetUserToTopic(userId, tid string) (UserToTopic, int) {
 }
 
 func CreateUserToTopic(data *UserToTopic) int {
+	var mutex sync.Mutex
+	mutex.Lock()
+	defer mutex.Unlock()
 	if err := db.Exec("insert into user_to_topic (user_id, tid, yes_ratio_price, no_ratio_price, created_at, updated_at) values (?, ?, ?, ?, ?, ?)", data.UserId, data.Tid, data.YesRatioPrice, data.NoRatioPrice, time.Now(), time.Now()).Error; err != nil {
 		return errmsg.ERROR
 	}
