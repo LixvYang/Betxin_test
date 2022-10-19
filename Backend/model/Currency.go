@@ -79,7 +79,7 @@ func ListCurrencies() ([]Currency, int, int) {
 	return currency, int(total), errmsg.SUCCSE
 }
 
-func GetCurrencyById(asset_id int) (Currency, int) {
+func GetCurrencyById(asset_id string) (Currency, int) {
 	var currency Currency
 	if err := db.Where("asset_id = ?", asset_id).First(&currency).Error; err != nil {
 		return Currency{}, errmsg.ERROR

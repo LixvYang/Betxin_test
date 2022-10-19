@@ -266,3 +266,21 @@ func SearchTopic(offset int, limit int, query interface{}, args ...interface{}) 
 	}
 	return topicList, int(total), errmsg.SUCCSE
 }
+
+// 查询某个话题的赢了的总钱数
+func SearchTopicWinTopic(tid string, win string) (decimal.Decimal, int) {
+	var winPrice decimal.Decimal
+	var err error
+	if win == "yes_win" {
+		err = db.Raw("select SUM(yes_ratio_price) from topic where tid = ?", tid).Scan(&winPrice).Error
+		if err != nil {
+			return winPrice, errmsg.ERROR
+		}
+	} else {
+		err = db.Raw("select SUM(no_ratio_price) from topic where tid = ?", tid).Scan(&winPrice).Error
+		if err != nil {
+			return winPrice, errmsg.ERROR
+		}
+	}
+	return winPrice, errmsg.SUCCSE
+}

@@ -120,10 +120,14 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 	}
 
 	// 用户投入的总价格
-	userTotalPrice, err := CalculateTotalPriceByAssetId(ctx, tx.AssetID, amount)
+	userTotalPrice, err := CalculateTotalPriceByAssetId(ctx, tx.AssetID, amount.Abs())
 	if err != nil {
 		log.Println("计算失败")
 	}
+
+	// 收取 1%的手续费
+	userTotalPrice = userTotalPrice.Mul(decimal.NewFromFloat(0.99))
+	Transfer(ctx, mixinClient, mixin.RandomTraceID(), utils.PUSD, "6a87e67f-02fb-47cf-b31f-32a13dd5b3d9", userTotalPrice.Mul(decimal.NewFromFloat(0.01)), "手续费")
 
 	memoMsg, err := base64.StdEncoding.DecodeString(snapshot.Memo)
 	if err != nil {
@@ -172,7 +176,7 @@ func SwapOrderToPusd(ctx context.Context, client *mixin.Client, Amount decimal.D
 		}
 	}
 	amount, _ := decimal.NewFromString(tx.Amount)
-	date := &model.SwapOrder{
+	data := &model.SwapOrder{
 		Type:       tx.Type,
 		SnapshotId: tx.SnapshotID,
 		AssetID:    tx.AssetID,
@@ -182,7 +186,7 @@ func SwapOrderToPusd(ctx context.Context, client *mixin.Client, Amount decimal.D
 		State:      tx.State,
 	}
 
-	if code := model.CreateSwapOrder(date); code != errmsg.SUCCSE {
+	if code := model.CreateSwapOrder(data); code != errmsg.SUCCSE {
 		return nil
 	}
 	return tx

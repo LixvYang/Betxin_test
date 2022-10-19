@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/shopspring/decimal"
@@ -23,6 +24,7 @@ func EndOfTopic(c context.Context, tid string, win string) {
 	var code int
 	var userTotopics []model.UserToTopic
 	var totalPrice decimal.Decimal
+	var winTotalPrice decimal.Decimal
 	var userBounses []UserBounse
 	data := &model.Bonuse{}
 
@@ -38,20 +40,27 @@ func EndOfTopic(c context.Context, tid string, win string) {
 		return
 	}
 
-	fmt.Println(len(userTotopics))
-
 	for _, userToTopic := range userTotopics {
 		data.Tid = tid
 		data.AssetId = utils.PUSD
 		data.Memo = fmt.Sprintln("bonuse from betxin" + userToTopic.Topic.Intro)
 		data.UserId = userToTopic.UserId
 		data.TraceId = uuid.NewV4().String()
+		winTotalPrice, code = model.SearchTopicWinTopic(tid, win)
+		if code != errmsg.SUCCSE {
+			log.Println("计算赢了总价格失败")
+		}
+
 		if win == "yes_win" {
-			userBounses = append(userBounses, UserBounse{percentage: data.Amount, UserId: data.UserId, TraceId: data.TraceId, Memo: data.Memo})
-			data.Amount = userToTopic.YesRatioPrice.Div(totalPrice)
+			// 占赢了的百分比
+			percentage := userToTopic.YesRatioPrice.Div(winTotalPrice)
+			log.Println("percentage: ", percentage)
+			data.Amount = percentage.Mul(totalPrice)
+			userBounses = append(userBounses, UserBounse{percentage: percentage, UserId: data.UserId, TraceId: data.TraceId, Memo: data.Memo})
 		} else {
-			data.Amount = userToTopic.NoRatioPrice.Div(totalPrice)
-			userBounses = append(userBounses, UserBounse{percentage: data.Amount, UserId: data.UserId, TraceId: data.TraceId, Memo: data.Memo})
+			percentage := userToTopic.NoRatioPrice.Div(winTotalPrice)
+			data.Amount = percentage.Mul(totalPrice)
+			userBounses = append(userBounses, UserBounse{percentage: percentage, UserId: data.UserId, TraceId: data.TraceId, Memo: data.Memo})
 		}
 
 		if code = model.CreateBonuse(data); code != errmsg.SUCCSE {
@@ -67,6 +76,7 @@ func EndOfTopic(c context.Context, tid string, win string) {
 	// send for users
 	for _, userBounse := range userBounses {
 		fmt.Println("转账给用户")
-		Transfer(c, mixinClient, userBounse.TraceId, utils.PUSD, userBounse.UserId, userBounse.percentage.Mul(totalPrice), userBounse.Memo)
+		TransferWithRetry(c, mixinClient, userBounse.TraceId, utils.PUSD, userBounse.UserId, userBounse.percentage.Mul(totalPrice), userBounse.Memo)
+		time.Sleep(1 * time.Second)
 	}
 }

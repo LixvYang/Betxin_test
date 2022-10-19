@@ -3,6 +3,7 @@ package model
 
 import (
 	"betxin/utils/errmsg"
+	"sync"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -21,6 +22,9 @@ type MixinOrder struct {
 }
 
 func CreateMixinOrder(data *MixinOrder) int {
+	var mutex sync.Mutex
+	mutex.Lock()
+	defer mutex.Unlock()
 	if err := db.Create(&data).Error; err != nil {
 		return errmsg.ERROR
 	}

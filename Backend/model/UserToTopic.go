@@ -2,6 +2,7 @@ package model
 
 import (
 	"betxin/utils/errmsg"
+	"sync"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -38,6 +39,9 @@ func GetUserToTopic(userId, tid string) (UserToTopic, int) {
 }
 
 func CreateUserToTopic(data *UserToTopic) int {
+	var mutex sync.Mutex
+	mutex.Lock()
+	defer mutex.Unlock()
 	if err := db.Exec("insert into user_to_topic (user_id, tid, yes_ratio_price, no_ratio_price, created_at, updated_at) values (?, ?, ?, ?, ?, ?)", data.UserId, data.Tid, data.YesRatioPrice, data.NoRatioPrice, time.Now(), time.Now()).Error; err != nil {
 		return errmsg.ERROR
 	}
@@ -134,15 +138,18 @@ func ListUserToTopicsWin(tid string, win string) ([]UserToTopic, int, int) {
 		return userToTopics, 0, errmsg.ERROR
 	}
 
+	var mutex sync.Mutex
+	mutex.Lock()
 	if win == "yes_win" {
 		db = db.Where("yes_ratio_price > 0")
 	} else {
 		db = db.Where("no_ratio_price > 0")
 	}
-
-	if err := db.Model(&UserToTopic{}).Select("user_id, tid, no_ratio_price, yes_ratio_price").Where("tid = ?", tid).Find(&userToTopics).Error; err != nil {
+	if err := db.Where("tid = ?", tid).Find(&userToTopics).Error; err != nil {
 		return userToTopics, 0, errmsg.ERROR
 	}
+	mutex.Unlock()
+
 	return userToTopics, int(count), errmsg.SUCCSE
 }
 
