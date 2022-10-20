@@ -16,11 +16,6 @@ import (
 
 func MixinOauth(c *gin.Context) {
 	var code = c.Query("code")
-	var pathUrl string = "/"
-
-	if c.Query("state") != "" {
-		pathUrl = c.Query("state")
-	}
 	access_token, _, err := mixin.AuthorizeToken(c, utils.ClientId, utils.AppSecret, code, "")
 	if err != nil {
 		log.Printf("AuthorizeToken: %v", err)
@@ -30,7 +25,7 @@ func MixinOauth(c *gin.Context) {
 	userinfo, err := service.GetUserInfo(access_token)
 	if err != nil {
 		log.Println("Get userInfo fail!!!")
-		c.Redirect(http.StatusPermanentRedirect, utils.IP+utils.HttpPort+pathUrl)
+		c.Redirect(http.StatusPermanentRedirect, "https://betxin.one")
 	}
 
 	user := model.User{
@@ -66,6 +61,6 @@ func MixinOauth(c *gin.Context) {
 		session.Set("token", sessionToken)
 		session.Save()
 	}
-	c.Redirect(http.StatusPermanentRedirect, utils.DomainName)
+	c.Redirect(http.StatusPermanentRedirect, "https://betxin.one")
 	// c.Redirect(http.StatusPermanentRedirect, "http://localhost:8080")
 }

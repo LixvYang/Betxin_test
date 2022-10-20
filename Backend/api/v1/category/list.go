@@ -3,9 +3,12 @@ package category
 import (
 	v1 "betxin/api/v1"
 	"betxin/model"
+	"betxin/utils/convert"
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 )
 
 type ListResponse struct {
@@ -29,63 +32,61 @@ type ListRequest struct {
 // @Success 200 {object} category.ListResponse "{"code":200,"message":"OK","data":{"totalCount":1,"list":[]}"
 // @Router /v1/category [get]
 func ListCategories(c *gin.Context) {
-	// var categoryies string
+	var categoryies string
 	var total int
 	var code int
-	// var err error
+	var err error
 
 	var data []model.Category
 
-	// total, _ = betxinredis.Get(v1.CATEGORY_TOTAL).Int()
-	// categoryies, err = betxinredis.Get(v1.CATEGORY_LIST).Result()
-	// convert.Unmarshal(categoryies, &data)
-	// if err == redis.Nil {
-	var r ListRequest
-	if err := c.ShouldBindJSON(&r); err != nil {
-		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
+	total, _ = betxinredis.Get(v1.CATEGORY_TOTAL).Int()
+	categoryies, err = betxinredis.Get(v1.CATEGORY_LIST).Result()
+	convert.Unmarshal(categoryies, &data)
+	if err == redis.Nil {
+		var r ListRequest
+		if err := c.ShouldBindJSON(&r); err != nil {
+			v1.SendResponse(c, errmsg.ERROR_BIND, nil)
+			return
+		}
+		switch {
+		case r.Offset >= 100:
+			r.Offset = 100
+		case r.Limit <= 0:
+			r.Limit = 10
+		}
+
+		if r.Limit == 0 {
+			r.Limit = 10
+		}
+
+		if r.CategoryName != "" {
+			data, total, code = model.SearchCategory(r.CategoryName, r.Offset, r.Limit)
+			if code != errmsg.SUCCSE {
+				v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
+				return
+			}
+		} else {
+			data, total, code = model.ListCategories(r.Offset, r.Limit)
+			if code != errmsg.SUCCSE {
+				v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
+				return
+			}
+		}
+
+		categoryies = convert.Marshal(&data)
+		betxinredis.Set(v1.CATEGORY_TOTAL, total, v1.REDISEXPIRE)
+		betxinredis.Set(v1.CATEGORY_LIST, categoryies, v1.REDISEXPIRE)
+		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+			TotalCount: total,
+			List:       data,
+		})
+	} else if err != nil {
+		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
-	}
-	switch {
-	case r.Offset >= 100:
-		r.Offset = 100
-	case r.Limit <= 0:
-		r.Limit = 10
-	}
-
-	if r.Limit == 0 {
-		r.Limit = 10
-	}
-
-	if r.CategoryName != "" {
-		data, total, code = model.SearchCategory(r.CategoryName, r.Offset, r.Limit)
-		if code != errmsg.SUCCSE {
-			v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
-			return
-		}
 	} else {
-
-		data, total, code = model.ListCategories(r.Offset, r.Limit)
-		if code != errmsg.SUCCSE {
-			v1.SendResponse(c, errmsg.ERROR_LIST_CATEGORY, nil)
-			return
-		}
+		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+			TotalCount: total,
+			List:       data,
+		})
 	}
-
-	//
-	// categoryies = convert.Marshal(&data)
-	// betxinredis.Set(v1.CATEGORY_TOTAL, total, v1.REDISEXPIRE)
-	// betxinredis.Set(v1.CATEGORY_LIST, categoryies, v1.REDISEXPIRE)
-	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
-		TotalCount: total,
-		List:       data,
-	})
-	// } else if err != nil {
-	// 	v1.SendResponse(c, errmsg.ERROR, nil)
-	// 	return
-	// } else {
-	// 	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
-	// 		TotalCount: total,
-	// 		List:       data,
-	// 	})
-	// }
 }

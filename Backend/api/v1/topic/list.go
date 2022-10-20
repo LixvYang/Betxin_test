@@ -5,9 +5,12 @@ import (
 	"betxin/model"
 	"betxin/utils/convert"
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
 	"fmt"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 )
 
 type ListResponse struct {
@@ -24,6 +27,7 @@ type ListRequest struct {
 
 func ListTopics(c *gin.Context) {
 	var r ListRequest
+	var topics string
 	var data []model.Topic
 	var total int
 	var code int
@@ -34,85 +38,95 @@ func ListTopics(c *gin.Context) {
 		return
 	}
 
-	data, total, code = model.ListTopics(r.Offset, r.Limit)
-	if code != errmsg.SUCCSE {
-		v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
+	var totalRedis string = v1.TOPIC_TOTAL + "_" + strconv.Itoa(r.Limit) + "_" + strconv.Itoa(r.Offset)
+	var topicsRedis string = v1.TOPIC_LIST + "_" + strconv.Itoa(r.Limit) + "_" + strconv.Itoa(r.Offset)
+
+	total, _ = betxinredis.Get(totalRedis).Int()
+	topics, err = betxinredis.Get(topicsRedis).Result()
+	convert.Unmarshal(topics, &data)
+	if err == redis.Nil {
+		data, total, code = model.ListTopics(r.Offset, r.Limit)
+		if code != errmsg.SUCCSE {
+			v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
+			return
+		}
+		topics = convert.Marshal(&data)
+		betxinredis.Set(totalRedis, total, v1.REDISEXPIRE)
+		betxinredis.Set(topicsRedis, topics, v1.REDISEXPIRE)
+
+		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+			TotalCount: total,
+			List:       data,
+		})
+	} else if err != nil {
+		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
+	} else {
+		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+			TotalCount: total,
+			List:       data,
+		})
 	}
-
-	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
-		TotalCount: total,
-		List:       data,
-	})
-}
-
-func ListTopicsNoLimit(c *gin.Context) {
-	var r ListRequest
-	var data []model.Topic
-	var total int
-	var code int
-	var err error
-
-	if err = c.ShouldBindJSON(&r); err != nil {
-		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
-		return
-	}
-
-	data, total, code = model.ListTopics(r.Offset, r.Limit)
-	if code != errmsg.SUCCSE {
-		v1.SendResponse(c, errmsg.ERROR_LIST_TOPIC, nil)
-		return
-	}
-
-	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
-		TotalCount: total,
-		List:       data,
-	})
 }
 
 // GetTopicByCid 通过种类id获取信息
 func GetTopicByCid(c *gin.Context) {
-	// var topics string
+	var topics string
 	var data []model.Topic
 	var total int
 	var code int
 	var err error
 
-	cid := c.Param("cid")
-	// total, _ = betxinredis.Get(v1.TOPIC_LIST_FROMCATE_TOTAL + cid).Int()
-	// topics, err = betxinredis.Get(v1.TOPIC_LIST_FROMCATE + cid).Result()
-	// convert.Unmarshal(topics, &data)
-	// if err == redis.Nil {
 	var r ListRequest
 	if err = c.ShouldBindJSON(&r); err != nil {
 		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
 		return
 	}
 
-	switch {
-	case r.Offset >= 100:
-		r.Offset = 100
-	case r.Limit <= 0:
-		r.Limit = 10
-	}
+	cid := c.Param("cid")
+	var totalRedis = v1.TOPIC_LIST_FROMCATE_TOTAL + cid
+	var topicsRedis = v1.TOPIC_LIST_FROMCATE + cid + "_" + strconv.Itoa(r.Limit) + "_" + strconv.Itoa(r.Offset)
+	total, _ = betxinredis.Get(totalRedis).Int()
+	topics, err = betxinredis.Get(topicsRedis).Result()
+	convert.Unmarshal(topics, &data)
+	if err == redis.Nil {
 
-	if r.Limit == 0 {
-		r.Limit = 10
-	}
-	data, total, code = model.GetTopicByCid(convert.StrToNum(cid), r.Limit, r.Offset)
-	if code != errmsg.SUCCSE {
-		v1.SendResponse(c, errmsg.ERROR_GET_TOPIC, nil)
+		switch {
+		case r.Offset >= 100:
+			r.Offset = 100
+		case r.Limit <= 0:
+			r.Limit = 10
+		}
+
+		if r.Limit == 0 {
+			r.Limit = 10
+		}
+		data, total, code = model.GetTopicByCid(convert.StrToNum(cid), r.Limit, r.Offset)
+		if code != errmsg.SUCCSE {
+			v1.SendResponse(c, errmsg.ERROR_GET_TOPIC, nil)
+			return
+		}
+
+		topics = convert.Marshal(&data)
+		betxinredis.Set(totalRedis, total, v1.REDISEXPIRE)
+		betxinredis.Set(topicsRedis, topics, v1.REDISEXPIRE)
+
+		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+			TotalCount: total,
+			List:       data,
+		})
+	} else if err != nil {
+		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
+	} else {
+		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
+			TotalCount: total,
+			List:       data,
+		})
 	}
-
-	v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
-		TotalCount: total,
-		List:       data,
-	})
-	// }
 }
 
-// GetTopicByCid 通过种类id获取信息
+// GetTopicByTitle 通过标题获取信息
 func GetTopicByTitle(c *gin.Context) {
 	var data []model.Topic
 	var total int

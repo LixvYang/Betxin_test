@@ -56,6 +56,20 @@ func Del(key string) {
 	r.redisClient.Del(r.ctx, key)
 }
 
+// 批量删除
+func BatchDel(key string) {
+	iter := r.redisClient.Scan(r.ctx, 0, key+"*", 0).Iterator()
+	for iter.Next(r.ctx) {
+		Del(iter.Val())
+	}
+	if err := iter.Err(); err != nil {
+		panic(err)
+	}
+	// for _, s := range r.redisClient.Keys(r.ctx, key+"*").Val() {
+	// 	Del(s)
+	// }
+}
+
 // func (r *RedisClient) Increment(key string) {
 // 	r.redisClient.Incr(r.ctx, key)
 // }

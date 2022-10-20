@@ -47,7 +47,7 @@ func CreateTopic(c *gin.Context) {
 		return
 	}
 
-	betxinredis.DelKeys(v1.TOPIC_TOTAL, v1.TOPIC_LIST)
+	betxinredis.BatchDel("topic")
 
 	v1.SendResponse(c, errmsg.SUCCSE, nil)
 }
