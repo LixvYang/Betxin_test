@@ -23,7 +23,7 @@ func UpdateTopic(c *gin.Context) {
 	if err != nil {
 		log.Println(err)
 	}
-	
+
 	topic := &model.Topic{
 		Tid:     r.Tid,
 		Cid:     convert.StrToNum(r.Cid),
@@ -38,8 +38,7 @@ func UpdateTopic(c *gin.Context) {
 		return
 	}
 
-	// Delete redis store
-	betxinredis.DelKeys(v1.TOPIC_TOTAL, v1.TOPIC_LIST, v1.TOPIC_GET+tid)
+	betxinredis.BatchDel("topic")
 
 	v1.SendResponse(c, errmsg.SUCCSE, tid)
 }

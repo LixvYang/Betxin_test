@@ -19,6 +19,10 @@ const (
 	CATEGORY_TOTAL = "category_total"
 	CATEGORY_GET   = "category_get_"
 
+	// FI
+	// topic_list_${limit}_${offset}
+	// topic_list_from_cate_${cid}_${limit}_${offset}
+	// topic_list_from_cate_total_${cid}
 	TOPIC_LIST                = "topic_list"
 	TOPIC_TOTAL               = "topic_total"
 	TOPIC_GET                 = "topic_get_"
@@ -44,6 +48,10 @@ const (
 	USER_TOTAL = "user_total"
 	//
 	USER_INFO = "user_info_"
+
+	// currency
+	CURRENCY_LIST = "currency_list"
+	CURRENCY_TOTAL = "currency_total"
 )
 
 type Response struct {

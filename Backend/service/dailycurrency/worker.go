@@ -3,7 +3,6 @@ package dailycurrency
 import (
 	"betxin/model"
 	"betxin/utils"
-	"betxin/utils/errmsg"
 	betxinredis "betxin/utils/redis"
 	"context"
 	"sync"
@@ -71,11 +70,11 @@ func updateRedisCurrency(ctx context.Context) {
 				Symbol:   asset.Symbol,
 			}
 			// 有值
-			if model.CheckCurrency(asset.AssetID) != errmsg.SUCCSE {
-				model.UpdateCurrency(currencies)
-			} else {
-				model.CreateCurrency(currencies)
-			}
+			// if model.CheckCurrency(asset.AssetID) != errmsg.SUCCSE {
+			model.UpdateCurrency(currencies)
+			// } else {
+			// 	model.CreateCurrency(currencies)
+			// }
 			betxinredis.Del(asset.Name + "_" + currency + "_" + "price")
 			betxinredis.Set(asset.Name+"_"+currency+"_"+"price", asset.PriceUSD, time.Minute)
 		}(currency)

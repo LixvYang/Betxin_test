@@ -46,7 +46,7 @@ func InitRouter() {
 	r.Use(logger.Logger())
 	r.Use(gin.Recovery())
 	r.Use(cors.Cors())
-	// r.Use(gin.Logger())
+	r.Use(gin.Logger())
 
 	r.Static("/static", "./web/front/dist/static")
 	r.Static("/admin", "./web/admin/dist")
@@ -66,10 +66,10 @@ func InitRouter() {
 	r.POST("/api/v1/topic/list", topic.ListTopics)
 	r.POST("/api/v1/topic/search", topic.GetTopicByTitle)
 	r.POST("/api/v1/topic/:cid", topic.GetTopicByCid)
+	r.GET("/api/v1/topic/:tid", topic.GetTopicInfoById)
 	r.POST("/api/v1/category/list", category.ListCategories)
 	r.POST("/api/v1/currency/list", currency.ListCurrencies)
 	r.POST("/api/v1/feedback/add", feedback.CreateFeedback)
-	r.GET("/api/v1/topic/:tid", topic.GetTopicInfoById)
 	r.POST("/api/v1/usertotopic/check", usertotopic.CheckUserToTopic)
 	r.POST("/api/v1/usertotopic/:id", usertotopic.GetUserToTopic)
 	// administrator.CreateAdministratorME()
@@ -137,7 +137,7 @@ func InitRouter() {
 		auth.POST("/backend/topic/add", topic.CreateTopic)
 		auth.DELETE("/backend/topic/:id", topic.DeleteTopic)
 		auth.POST("/backend/topic/stop", topic.StopTopic)
-		auth.POST("/backend/topic/list", topic.ListTopicsNoLimit)
+		auth.POST("/backend/topic/list", topic.ListTopics)
 		auth.PUT("/backend/topic/:id", topic.UpdateTopic)
 
 		// upload   上传文件
