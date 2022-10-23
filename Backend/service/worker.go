@@ -84,7 +84,7 @@ func Worker(ctx context.Context, client *mixin.Client) error {
 	// subclients := subclient.NewWorkderQueue(ctx, client)
 	createdAt, err := getTopSnapshotCreatedAt(client, ctx)
 	if err != nil {
-		return nil
+		return err
 	}
 	stats := &Stats{createdAt}
 	gocron.Every(2).Second().Do(sendTopCreatedAtToChannel, ctx, stats, client)
