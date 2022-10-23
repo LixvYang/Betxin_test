@@ -59,6 +59,9 @@ func InitDb() {
 	// db.Migrator().DropTable(&Administrator{})
 	// db.Migrator().DropTable(&FeedBack{})
 	// db.Migrator().DropTable(&SendBack{})
+	// db.Migrator().DropTable(&Comment{})
+	// db.Migrator().DropTable(&MixpayOrder{})
+	// db.Migrator().DropTable(&PraiseComment{})
 
 	// 迁移数据表，在没有数据表结构变更时候，建议注释不执行
 	db.AutoMigrate(
@@ -77,6 +80,9 @@ func InitDb() {
 		&Administrator{},
 		&FeedBack{},
 		&SendBack{},
+		&Comment{},
+		&MixpayOrder{},
+		&PraiseComment{},
 	)
 
 	sqlDB, _ := db.DB()

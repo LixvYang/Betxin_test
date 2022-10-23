@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/fox-one/mixin-sdk-go"
 	uuid "github.com/satori/go.uuid"
 	"github.com/shopspring/decimal"
 )
@@ -32,7 +33,10 @@ func EndOfTopic(c context.Context, tid string, win string) {
 	if code != errmsg.SUCCSE {
 		return
 	}
-	log.Println(totalPrice)
+
+	// 收取5%的金钱
+	TransferWithRetry(context.Background(), mixinClient, mixin.RandomTraceID(), utils.PUSD, "6a87e67f-02fb-47cf-b31f-32a13dd5b3d9", totalPrice.Mul(decimal.NewFromFloat(0.05)), "话题收取手续费")
+	totalPrice = totalPrice.Mul(decimal.NewFromFloat(0.95))
 
 	userTotopics, _, code = model.ListUserToTopicsWin(tid, win)
 	if code != errmsg.SUCCSE {
@@ -54,7 +58,6 @@ func EndOfTopic(c context.Context, tid string, win string) {
 		if win == "yes_win" {
 			// 占赢了的百分比
 			percentage := userToTopic.YesRatioPrice.Div(winTotalPrice)
-			log.Println("percentage: ", percentage)
 			data.Amount = percentage.Mul(totalPrice)
 			userBounses = append(userBounses, UserBounse{percentage: percentage, UserId: data.UserId, TraceId: data.TraceId, Memo: data.Memo})
 		} else {
@@ -75,7 +78,6 @@ func EndOfTopic(c context.Context, tid string, win string) {
 
 	// send for users
 	for _, userBounse := range userBounses {
-		fmt.Println("转账给用户")
 		TransferWithRetry(c, mixinClient, userBounse.TraceId, utils.PUSD, userBounse.UserId, userBounse.percentage.Mul(totalPrice), userBounse.Memo)
 		time.Sleep(1 * time.Second)
 	}

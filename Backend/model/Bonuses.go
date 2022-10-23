@@ -21,15 +21,6 @@ type Bonuse struct {
 	UpdatedAt time.Time       `gorm:"datatime(3)" json:"updated_at"`
 }
 
-// func CheckBonuse(trace_id string) int {
-// 	var bonuse Bonuse
-// 	db.Select("id").Where("trace_id = ?", trace_id).Last(&bonuse)
-// 	if bonuse.Id > 0 {
-// 		return errmsg.ERROR_BONUSE_EXIST
-// 	}
-// 	return errmsg.SUCCSE
-// }
-
 func CreateBonuse(data *Bonuse) int {
 	if err := db.Exec("insert into bonuse (user_id, tid, asset_id, amount, memo, trace_id, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?)", data.UserId, data.Tid, data.AssetId, data.Amount, data.Memo, data.TraceId, time.Now(), time.Now()).Error; err != nil {
 		return errmsg.ERROR

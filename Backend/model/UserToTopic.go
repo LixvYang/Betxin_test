@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
+	"gorm.io/gorm"
 )
 
 type UserToTopic struct {
@@ -60,15 +61,15 @@ func UpdateUserToTopic(data *UserToTopic) int {
 	}
 
 	// 锁住指定 id 的 User 记录
-	if err := tx.Set("gorm:query_option", "FOR UPDATE").Last(&User{}, data.UserId).Error; err != nil {
+	if err := tx.Set("gorm:query_option", "FOR UPDATE").Where("user_id = ? AND tid = ?", data.UserId, data.Tid).Error; err != nil {
 		tx.Rollback()
 		return errmsg.ERROR
 	}
 
 	var maps = make(map[string]interface{})
-	maps["YesRatioPrice"] = data.YesRatioPrice
-	maps["NoRatioPrice"] = data.NoRatioPrice
-	if err := db.Model(&UserToTopic{}).Where("user_id = ?", data.UserId).Updates(maps).Error; err != nil {
+	maps["YesRatioPrice"] = gorm.Expr("yes_ratio_price + ?", data.YesRatioPrice)
+	maps["NoRatioPrice"] = gorm.Expr("no_ratio_price + ?", data.NoRatioPrice)
+	if err := db.Model(&UserToTopic{}).Where("user_id = ? AND tid = ?", data.UserId, data.Tid).Updates(maps).Error; err != nil {
 		return errmsg.ERROR
 	}
 	if err := tx.Commit().Error; err != nil {

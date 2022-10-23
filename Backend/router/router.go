@@ -6,11 +6,14 @@ import (
 	"betxin/api/v1/bonuse"
 	"betxin/api/v1/category"
 	"betxin/api/v1/collect"
+	"betxin/api/v1/comment"
 	"betxin/api/v1/currency"
 	"betxin/api/v1/feedback"
 	"betxin/api/v1/message"
 	"betxin/api/v1/mixinorder"
+	"betxin/api/v1/mixpayorder"
 	"betxin/api/v1/oauth"
+	"betxin/api/v1/praisecomment"
 	"betxin/api/v1/sendback"
 	"betxin/api/v1/snapshot"
 	"betxin/api/v1/swaporder"
@@ -72,6 +75,10 @@ func InitRouter() {
 	r.POST("/api/v1/feedback/add", feedback.CreateFeedback)
 	r.POST("/api/v1/usertotopic/check", usertotopic.CheckUserToTopic)
 	r.POST("/api/v1/usertotopic/:id", usertotopic.GetUserToTopic)
+
+	r.POST("/mixpayorder/:traceid", mixpayorder.GetMixpayOrder)
+
+
 	// administrator.CreateAdministratorME()
 
 	auth := r.Group("api/v1")
@@ -167,6 +174,16 @@ func InitRouter() {
 		auth.DELETE("/backend/sendback/:id", sendback.DeleteSendback)
 		auth.POST("/backend/sendback/add", feedback.CreateFeedback)
 
+		// mixpay order
+		auth.POST("/backend/mixpayorder/list", mixpayorder.ListMixpayOrder)
+
+		// praise comment
+		auth.POST("/backend/praisecomment/list", praisecomment.ListPraiseComment)
+
+		// comment
+		auth.POST("/backend/comment/list", comment.ListComment)
+
+
 		auth.GET("/backend/health", sd.HealthCheck)
 		auth.GET("/backend/disk", sd.DiskCheck)
 		auth.GET("/backend/cpu", sd.CPUCheck)
@@ -184,6 +201,17 @@ func InitRouter() {
 		router.POST("/collect/add", collect.CreateCollect)
 		router.POST("/collect/check", collect.CheckCollect)
 		router.POST("/collect/delete", collect.DeleteCollect)
+
+		router.POST("/comment/:tid", comment.ListCommentByTid)
+		router.POST("/comment/add", comment.CreateComment)
+		router.GET("/comment/:id", comment.GetCommentById)
+
+		router.POST("/praisecomment/delete", praisecomment.DeletePraiseComment)
+		router.POST("/praisecomment/add", praisecomment.CreatePraiseComment)
+		router.POST("/praisecomment/check", praisecomment.CheckPraise)
+
+		router.POST("/mixpayorder/add", mixpayorder.CreateMixinpayOrder)
+		router.POST("/mixpayorder/update", mixpayorder.UpdateMixpayOrder)
 	}
 
 	_ = r.Run(utils.HttpPort)
