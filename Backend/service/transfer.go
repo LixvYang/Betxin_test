@@ -201,3 +201,18 @@ func CalculateTotalPriceByAssetId(ctx context.Context, AssedId string, amount de
 	}
 	return asset.PriceUsd.Mul(amount), nil
 }
+
+// 根据输入的资产symbol和资产数目计算出资产总价格
+func CalculateTotalPriceBySymbol(ctx context.Context, Symbol string, amount decimal.Decimal) (decimal.Decimal, error) {
+	decimal.DivisionPrecision = 8 // 保留两位小数，如有更多位，则进行四舍五入保留两位小数
+	asset, code := model.GetCurrencyBySymbol(Symbol)
+	if code != errmsg.SUCCSE {
+		asset, err := mixin.ReadNetworkAsset(ctx, asset.AssetId)
+		if err != nil {
+			return asset.PriceUSD.Mul(amount), nil
+		}
+		return decimal.NewFromFloat(0), err
+	}
+	return asset.PriceUsd.Mul(amount), nil
+}
+

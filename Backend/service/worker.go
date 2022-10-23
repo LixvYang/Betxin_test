@@ -41,6 +41,9 @@ func getTopSnapshotCreatedAt(client *mixin.Client, c context.Context) (time.Time
 	if err != nil {
 		return time.Now(), err
 	}
+	if len(snapshots) == 0 {
+		return time.Now(), nil
+	}
 	return snapshots[0].CreatedAt, nil
 }
 
@@ -125,10 +128,6 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 		log.Println("计算失败")
 	}
 
-	// 收取 1%的手续费
-	userTotalPrice = userTotalPrice.Mul(decimal.NewFromFloat(0.99))
-	Transfer(ctx, mixinClient, mixin.RandomTraceID(), utils.PUSD, "6a87e67f-02fb-47cf-b31f-32a13dd5b3d9", userTotalPrice.Mul(decimal.NewFromFloat(0.01)), "手续费")
-
 	memoMsg, err := base64.StdEncoding.DecodeString(snapshot.Memo)
 	if err != nil {
 		return errors.New("解码memo失败")
@@ -150,9 +149,19 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 	}
 	data.Tid = memo.Tid
 
-	if code := model.CreateUserToTopic(&data); code != errmsg.SUCCSE {
-		log.Println("CreateUserToTopic错误")
-		return err
+	// 已经买过了
+	if code := model.CheckUserToTopic(data.UserId, data.Tid); code != errmsg.ERROR {
+		code = model.UpdateUserToTopic(&data)
+		if code != errmsg.SUCCSE {
+			log.Println("CreateUserToTopic错误")
+			return err
+		}
+	} else {
+		code = model.CreateUserToTopic(&data)
+		if code != errmsg.SUCCSE {
+			log.Println("CreateUserToTopic错误")
+			return err
+		}
 	}
 
 	if code := model.UpdateTopicTotalPrice(data.Tid, selectWin, userTotalPrice); code != errmsg.SUCCSE {

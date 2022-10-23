@@ -34,8 +34,8 @@ func ListCurrencies(c *gin.Context) {
 		}
 
 		currencies = convert.Marshal(&data)
-		betxinredis.Set(v1.CURRENCY_TOTAL, total, time.Minute/2)
-		betxinredis.Set(v1.CURRENCY_LIST, currencies, time.Minute/2)
+		betxinredis.Set(v1.CURRENCY_TOTAL, total, time.Minute/6)
+		betxinredis.Set(v1.CURRENCY_LIST, currencies, time.Minute/6)
 
 		v1.SendResponse(c, errmsg.SUCCSE, ListResponse{
 			TotalCount: total,

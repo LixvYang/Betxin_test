@@ -86,3 +86,11 @@ func GetCurrencyById(asset_id string) (Currency, int) {
 	}
 	return currency, errmsg.SUCCSE
 }
+
+func GetCurrencyBySymbol(symbol string) (Currency, int) {
+	var currency Currency
+	if err := db.Where("symbol = ?", symbol).First(&currency).Error; err != nil {
+		return Currency{}, errmsg.ERROR
+	}
+	return currency, errmsg.SUCCSE
+}
