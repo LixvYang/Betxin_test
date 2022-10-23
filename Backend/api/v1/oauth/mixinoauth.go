@@ -61,6 +61,6 @@ func MixinOauth(c *gin.Context) {
 		session.Set("token", sessionToken)
 		session.Save()
 	}
-	c.Redirect(http.StatusPermanentRedirect, "https://betxin.one")
-	// c.Redirect(http.StatusPermanentRedirect, "http://localhost:8080")
+	// c.Redirect(http.StatusPermanentRedirect, "https://betxin.one")
+	c.Redirect(http.StatusPermanentRedirect, "http://localhost:8080")
 }
