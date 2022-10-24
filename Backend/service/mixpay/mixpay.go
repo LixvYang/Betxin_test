@@ -1,7 +1,6 @@
 package mixpay
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -20,6 +19,7 @@ type Data struct {
 	PayeeMixinNumber string `json:"payeeMixinNumber"`
 	PayeeAvatarURL   string `json:"payeeAvatarUrl"`
 	Txid             string `json:"txid"`
+	BlockExplorerURL string `json:"blockExplorerUrl"`
 	Date             int64  `json:"date"`
 	SurplusAmount    string `json:"surplusAmount"`
 	SurplusStatus    string `json:"surplusStatus"`
@@ -28,7 +28,6 @@ type Data struct {
 	FailureCode      string `json:"failureCode"`
 	FailureReason    string `json:"failureReason"`
 	ReturnTo         string `json:"returnTo"`
-	TraceID          string `json:"traceId"`
 }
 
 type MixpayResult struct {
@@ -43,11 +42,9 @@ type MixpayResult struct {
 // 	TraceId string `json:"traceId"`
 // }
 
-func GetMixpayResult(traceId string) (MixpayResult, error) {
-	payload := "{\"traceId\":\"" + traceId + "\"}"
-
-	req, err := http.NewRequest("GET", "https://api.mixpay.me/v1/payments_result", bytes.NewBuffer([]byte(payload)))
-	req.Header.Set("Content-Type", "application/json")
+func GetMixpayResult(orderId string, payeeId string) (MixpayResult, error) {
+	mixpayAPIURL := fmt.Sprintf("https://api.mixpay.me/v1/payments_result?orderId=" + orderId + "&payeeId=" + payeeId)
+	req, err := http.NewRequest(http.MethodGet, mixpayAPIURL, nil)
 	if err != nil {
 		log.Println(err)
 		return MixpayResult{}, err
@@ -59,13 +56,13 @@ func GetMixpayResult(traceId string) (MixpayResult, error) {
 	}
 	defer res.Body.Close()
 
-	var mixpayResult MixpayResult
+	mixpayResult := MixpayResult{}
 	if err = json.NewDecoder(res.Body).Decode(&mixpayResult); err != nil {
-		return MixpayResult{}, err
+		return mixpayResult, err
 	}
 
 	if mixpayResult.Data.Status != "success" {
-		return MixpayResult{}, err
+		return mixpayResult, err
 	}
 
 	fmt.Println(mixpayResult)

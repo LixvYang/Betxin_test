@@ -123,7 +123,7 @@ func ListUserToTopics(offset, limit int) ([]UserToTopic, int, int) {
 		return userToTopics, 0, errmsg.ERROR
 	}
 
-	if err := db.Select("user_to_topic.tid, id, user_id, user_to_topic.updated_at,user_to_topic.created_at, Topic.cid").Limit(limit).Offset(offset).Joins("Topic").Find(&userToTopics).Error; err != nil {
+	if err := db.Select("user_to_topic.tid, id,user_to_topic.yes_ratio_price, user_to_topic.no_ratio_price, user_id, user_to_topic.updated_at,user_to_topic.created_at, Topic.cid").Limit(limit).Offset(offset).Joins("Topic").Find(&userToTopics).Error; err != nil {
 		return nil, 0, errmsg.ERROR
 	}
 

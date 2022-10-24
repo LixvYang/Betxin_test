@@ -5,9 +5,8 @@ import (
 	"betxin/model"
 	"betxin/service/mixpay"
 	"betxin/utils/errmsg"
-	"fmt"
-	"log"
 	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,40 +25,37 @@ func UpdateMixpayOrder(c *gin.Context) {
 		return
 	}
 
-	fmt.Println("收到mixpay update")
-	fmt.Println(u)
-
 	mixpayorder = model.MixpayOrder{
 		OrderId: u.OrderId,
 		PayeeId: u.PayeeId,
 		TraceId: u.TraceId,
 	}
 
+	var mutex sync.Mutex
+	mutex.Lock()
 	if code := model.UpdateMixpayOrder(&mixpayorder); code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
+	mutex.Unlock()
 
-	mixpayRes, err := mixpay.GetMixpayResult(u.TraceId)
+	mixpayRes, err := mixpay.GetMixpayResult(u.OrderId, u.PayeeId)
 	if err != nil {
-		log.Println("查询MixpayResult错误")
-		log.Println(err)
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
 
 	// 查询Mixpay支付信息　比如
-	mixpayorder, code := model.GetMixpayOrder(u.TraceId)
+	mixpayOrder, code := model.GetMixpayOrder(mixpayorder.TraceId)
 	if code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
 
-	if err := mixpay.Worker(mixpayorder, mixpayRes); err != nil {
+	if err := mixpay.Worker(mixpayOrder, mixpayRes); err != nil {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"code": "SUCCESS",
 	})
