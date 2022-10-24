@@ -94,6 +94,12 @@ func Worker(ctx context.Context, client *mixin.Client) error {
 }
 
 func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot *mixin.Snapshot) error {
+
+	if snapshot.Memo == "" {
+		log.Println("memo 为空退出")
+		return nil
+	}
+
 	r := model.MixinOrder{
 		Type:       snapshot.Type,
 		AssetId:    snapshot.AssetID,
@@ -107,7 +113,6 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 		log.Println("创建CreateMixinOrder错误")
 		return errors.New("")
 	}
-
 	// 用户传过来的memo是经过base64加密的  yes或no  再加上trace_id 的json
 	///  memo  traceId:不应该是随机id 应该是把userid和买的topic id yesorno放在一起
 	tx := &mixin.RawTransaction{}
@@ -133,6 +138,7 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 	if err != nil {
 		return errors.New("解码memo失败")
 	}
+
 	memo := &Memo{}
 	if err := json.Unmarshal(memoMsg, &memo); err != nil {
 		return errors.New("解构memo失败")
@@ -169,7 +175,7 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 		log.Println("UpdateTopicTotalPrice错误")
 		return err
 	}
-	
+
 	betxinredis.BatchDel("topic")
 
 	return nil

@@ -43,7 +43,7 @@ func DeleteMixpayOrder(orderId string) int {
 
 func GetMixpayOrder(traceId string) (MixpayOrder, int) {
 	var mixpayOrder MixpayOrder
-	if err := db.Where("trace_id = ?", traceId).Last(mixpayOrder).Error; err != nil || err != gorm.ErrRecordNotFound {
+	if err := db.Model(&MixpayOrder{}).Where("trace_id = ?", traceId).Last(&mixpayOrder).Error; err != nil {
 		return mixpayOrder, errmsg.ERROR
 	}
 	return mixpayOrder, errmsg.SUCCSE

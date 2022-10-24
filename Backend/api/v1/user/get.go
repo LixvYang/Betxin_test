@@ -14,7 +14,6 @@ func GetUserInfoByUserId(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get("userId")
 	userId := fmt.Sprintf("%v", user)
-	fmt.Println(userId)
 
 	data, code := model.GetUserById(userId)
 	if code != errmsg.SUCCSE {

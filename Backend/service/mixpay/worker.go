@@ -17,18 +17,30 @@ func Worker(mixpayorder model.MixpayOrder, mixpayRes MixpayResult) error {
 	var selectWin string
 	var err error
 	var userTotalPrice decimal.Decimal
-	data.UserId = mixpayorder.Uid
 	data.Tid = mixpayorder.Tid
+	data.UserId = mixpayorder.Uid
 
 	if mixpayorder.YesRatio {
 		selectWin = "yes_win"
-		payAmount, _ := decimal.NewFromString(mixpayRes.Data.PaymentAmount)
-		userTotalPrice, _ = service.CalculateTotalPriceBySymbol(context.Background(), mixpayRes.Data.PaymentSymbol, payAmount)
+		payAmount, err := decimal.NewFromString(mixpayRes.Data.PaymentAmount)
+		if err != nil {
+			log.Println("支付价转换失败")
+		}
+		userTotalPrice, err := service.CalculateTotalPriceBySymbol(context.Background(), mixpayRes.Data.PaymentSymbol, payAmount)
+		if err != nil {
+			log.Println("计算价格转换失败")
+		}
 		data.YesRatioPrice = userTotalPrice
 	} else {
 		selectWin = "no_win"
-		payAmount, _ := decimal.NewFromString(mixpayRes.Data.PaymentAmount)
-		userTotalPrice, _ = service.CalculateTotalPriceBySymbol(context.Background(), mixpayRes.Data.PaymentSymbol, payAmount)
+		payAmount, err := decimal.NewFromString(mixpayRes.Data.PaymentAmount)
+		if err != nil {
+			log.Println("支付价转换失败")
+		}
+		userTotalPrice, err := service.CalculateTotalPriceBySymbol(context.Background(), mixpayRes.Data.PaymentSymbol, payAmount)
+		if err != nil {
+			log.Println("计算价格转换失败")
+		}
 		data.NoRatioPrice = userTotalPrice
 	}
 
