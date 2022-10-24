@@ -75,9 +75,9 @@ func InitRouter() {
 	r.POST("/api/v1/feedback/add", feedback.CreateFeedback)
 	r.POST("/api/v1/usertotopic/check", usertotopic.CheckUserToTopic)
 	r.POST("/api/v1/usertotopic/:id", usertotopic.GetUserToTopic)
-
-	r.POST("/mixpayorder/:traceid", mixpayorder.GetMixpayOrder)
-
+	r.POST("/api/v1/mixpayorder/:traceid", mixpayorder.GetMixpayOrder)
+	r.POST("/api/v1/comment/:tid", comment.ListCommentByTid)
+	r.POST("/api/v1/mixpayorder/update", mixpayorder.UpdateMixpayOrder)
 
 	// administrator.CreateAdministratorME()
 
@@ -183,7 +183,6 @@ func InitRouter() {
 		// comment
 		auth.POST("/backend/comment/list", comment.ListComment)
 
-
 		auth.GET("/backend/health", sd.HealthCheck)
 		auth.GET("/backend/disk", sd.DiskCheck)
 		auth.GET("/backend/cpu", sd.CPUCheck)
@@ -202,7 +201,6 @@ func InitRouter() {
 		router.POST("/collect/check", collect.CheckCollect)
 		router.POST("/collect/delete", collect.DeleteCollect)
 
-		router.POST("/comment/:tid", comment.ListCommentByTid)
 		router.POST("/comment/add", comment.CreateComment)
 		router.GET("/comment/:id", comment.GetCommentById)
 
@@ -211,7 +209,6 @@ func InitRouter() {
 		router.POST("/praisecomment/check", praisecomment.CheckPraise)
 
 		router.POST("/mixpayorder/add", mixpayorder.CreateMixinpayOrder)
-		router.POST("/mixpayorder/update", mixpayorder.UpdateMixpayOrder)
 	}
 
 	_ = r.Run(utils.HttpPort)
