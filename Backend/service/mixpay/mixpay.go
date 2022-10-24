@@ -1,9 +1,9 @@
 package mixpay
 
 import (
-	"betxin/utils/convert"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -39,17 +39,15 @@ type MixpayResult struct {
 	TimestampMS int64  `json:"timestampMs"`
 }
 
-type MixpayRequest struct {
-	TraceId string `json:"traceId"`
-}
+// type MixpayRequest struct {
+// 	TraceId string `json:"traceId"`
+// }
 
 func GetMixpayResult(traceId string) (MixpayResult, error) {
-	m := MixpayRequest{
-		TraceId: traceId,
-	}
+	payload := "{\"traceId\":\"" + traceId + "\"}"
 
-	payload := convert.Marshal(m)
 	req, err := http.NewRequest("GET", "https://api.mixpay.me/v1/payments_result", bytes.NewBuffer([]byte(payload)))
+	req.Header.Set("Content-Type", "application/json")
 	if err != nil {
 		log.Println(err)
 		return MixpayResult{}, err
@@ -69,6 +67,8 @@ func GetMixpayResult(traceId string) (MixpayResult, error) {
 	if mixpayResult.Data.Status != "success" {
 		return MixpayResult{}, err
 	}
+
+	fmt.Println(mixpayResult)
 
 	return mixpayResult, nil
 }

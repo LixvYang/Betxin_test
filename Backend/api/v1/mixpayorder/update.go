@@ -5,6 +5,8 @@ import (
 	"betxin/model"
 	"betxin/service/mixpay"
 	"betxin/utils/errmsg"
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -24,6 +26,9 @@ func UpdateMixpayOrder(c *gin.Context) {
 		return
 	}
 
+	fmt.Println("收到mixpay update")
+	fmt.Println(u)
+
 	mixpayorder = model.MixpayOrder{
 		OrderId: u.OrderId,
 		PayeeId: u.PayeeId,
@@ -37,6 +42,8 @@ func UpdateMixpayOrder(c *gin.Context) {
 
 	mixpayRes, err := mixpay.GetMixpayResult(u.TraceId)
 	if err != nil {
+		log.Println("查询MixpayResult错误")
+		log.Println(err)
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
