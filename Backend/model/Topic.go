@@ -20,8 +20,8 @@ type Topic struct {
 	Title         string          `gorm:"type:varchar(50);not null;index:title_intro_topic_index" json:"title"`
 	Intro         string          `gorm:"type:varchar(255);not null;index:title_intro_topic_index" json:"intro"`
 	CollectCount  int             `gorm:"type:int;default 0" json:"collect_count"`
-	YesRatio      decimal.Decimal `gorm:"type:decimal(5,2);default 0.5;" json:"yes_ratio"`
-	NoRatio       decimal.Decimal `gorm:"type:decimal(5,2);default 0.5" json:"no_ratio"`
+	YesRatio      decimal.Decimal `gorm:"type:decimal(5,2);" json:"yes_ratio"`
+	NoRatio       decimal.Decimal `gorm:"type:decimal(5,2);" json:"no_ratio"`
 	YesRatioPrice decimal.Decimal `gorm:"type:decimal(16,8);default 0" json:"yes_ratio_price"`
 	NoRatioPrice  decimal.Decimal `gorm:"type:decimal(16,8);default 0" json:"no_ratio_price"`
 	TotalPrice    decimal.Decimal `gorm:"type:decimal(32,8);default 0;" json:"total_price"`
@@ -36,6 +36,8 @@ type Topic struct {
 
 func (t *Topic) BeforeCreate(tx *gorm.DB) error {
 	t.Tid = uuid.NewV4().String()
+	t.YesRatio = decimal.NewFromFloat(0.5)
+	t.NoRatio = decimal.NewFromFloat(0.5)
 	return nil
 }
 

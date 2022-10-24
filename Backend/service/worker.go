@@ -4,6 +4,7 @@ import (
 	"betxin/model"
 	"betxin/utils"
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -168,6 +169,9 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 		log.Println("UpdateTopicTotalPrice错误")
 		return err
 	}
+	
+	betxinredis.BatchDel("topic")
+
 	return nil
 }
 
