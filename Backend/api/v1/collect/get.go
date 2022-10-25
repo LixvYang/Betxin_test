@@ -24,7 +24,6 @@ func GetCollectByUserId(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get("userId")
 	userId := fmt.Sprintf("%v", user)
-	fmt.Println(userId)
 	// total, _ = betxinredis.Get(v1.COLLECT_GET_USER_TOTAL + userId).Int()
 	// collect, err = betxinredis.Get(v1.COLLECT_GET_USER_LIST + userId).Result()
 	// convert.Unmarshal(collect, &data)

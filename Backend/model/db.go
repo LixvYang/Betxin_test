@@ -62,6 +62,7 @@ func InitDb() {
 	// db.Migrator().DropTable(&Comment{})
 	// db.Migrator().DropTable(&MixpayOrder{})
 	// db.Migrator().DropTable(&PraiseComment{})
+	// db.Migrator().DropTable(&Refund{})
 
 	// 迁移数据表，在没有数据表结构变更时候，建议注释不执行
 	db.AutoMigrate(
@@ -74,7 +75,6 @@ func InitDb() {
 		&MixinMessage{},
 		&SwapOrder{},
 		&MixinNetworkSnapshot{},
-		&UserAuthorization{},
 		&MixinOrder{},
 		&UserToTopic{},
 		&Administrator{},
@@ -83,6 +83,7 @@ func InitDb() {
 		&Comment{},
 		&MixpayOrder{},
 		&PraiseComment{},
+		&Refund{},
 	)
 
 	sqlDB, _ := db.DB()

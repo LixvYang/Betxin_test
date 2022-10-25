@@ -195,6 +195,7 @@ func InitRouter() {
 		router.POST("/user/info", user.GetUserInfoByUserId)
 		router.POST("/usertotopic/list", usertotopic.ListUserToTopicsByUserIdNoLimit)
 		router.POST("/usertotopic/add", usertotopic.CreateUserToTopic)
+		router.POST("/usertotopic/refund", usertotopic.RefundUserToTopic)
 
 		router.POST("/collect/list", collect.GetCollectByUserId)
 		router.POST("/collect/add", collect.CreateCollect)

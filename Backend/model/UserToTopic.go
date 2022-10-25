@@ -49,6 +49,55 @@ func CreateUserToTopic(data *UserToTopic) int {
 	return errmsg.SUCCSE
 }
 
+func RefundUserToTopic(data *UserToTopic) (decimal.Decimal, decimal.Decimal, int) {
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return decimal.Decimal{}, decimal.Decimal{}, errmsg.ERROR
+	}
+
+	// 锁住指定 id 的 User 记录
+	if err := tx.Set("gorm:query_option", "FOR UPDATE").Where("user_id = ? AND tid = ?", data.UserId, data.Tid).Error; err != nil {
+		tx.Rollback()
+		return decimal.Decimal{}, decimal.Decimal{}, errmsg.ERROR
+	}
+
+	var maps = make(map[string]interface{})
+	var userToTopic UserToTopic
+	var yesFee decimal.Decimal
+	var noFee decimal.Decimal
+	err := db.Model(&UserToTopic{}).Where("user_id = ? AND tid = ?", data.UserId, data.Tid).Last(&userToTopic).Error
+	if err != nil {
+		return decimal.Decimal{}, decimal.Decimal{}, errmsg.ERROR
+	}
+
+	// 先扣除手续费
+	if data.YesRatioPrice.GreaterThan(decimal.NewFromFloat(0)) {
+		yesFee = userToTopic.YesRatioPrice.Mul(decimal.NewFromFloat(0.05))
+		db.Model(&UserToTopic{}).Where("user_id = ? AND tid = ?", data.UserId, data.Tid).Update("yes_ratio_price", gorm.Expr("yes_ratio_price * 0.95"))
+	}
+
+	if data.NoRatioPrice.GreaterThan(decimal.NewFromFloat(0)) {
+		noFee = userToTopic.NoRatioPrice.Mul(decimal.NewFromFloat(0.05))
+		db.Model(&UserToTopic{}).Where("user_id = ? AND tid = ?", data.UserId, data.Tid).Update("no_ratio_price", gorm.Expr("no_ratio_price * 0.95"))
+	}
+
+	maps["YesRatioPrice"] = gorm.Expr("yes_ratio_price - ?", data.YesRatioPrice)
+	maps["NoRatioPrice"] = gorm.Expr("no_ratio_price - ?", data.NoRatioPrice)
+
+	if err := db.Model(&UserToTopic{}).Where("user_id = ? AND tid = ?", data.UserId, data.Tid).Updates(maps).Error; err != nil {
+		return decimal.Decimal{}, decimal.Decimal{}, errmsg.ERROR
+	}
+	if err := tx.Commit().Error; err != nil {
+		return decimal.Decimal{}, decimal.Decimal{}, errmsg.ERROR
+	}
+	return yesFee, noFee, errmsg.SUCCSE
+}
+
 func UpdateUserToTopic(data *UserToTopic) int {
 	tx := db.Begin()
 	defer func() {
