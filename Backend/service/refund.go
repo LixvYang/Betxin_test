@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"log"
-	"time"
 
 	"github.com/fox-one/mixin-sdk-go"
 	"github.com/shopspring/decimal"
@@ -42,16 +41,12 @@ func RefundUserToTopic(yesFee decimal.Decimal, noFee decimal.Decimal, userToTopi
 		}
 	}
 
-	log.Println(userToTopic.NoRatioPrice.GreaterThan(decimal.NewFromFloat(0)))
-	// 退no
 	if userToTopic.NoRatioPrice.GreaterThan(decimal.NewFromFloat(0)) {
 		traceId := mixin.RandomTraceID()
 		refund := model.Refund{TraceId: traceId}
 		if code := model.CreateRefund(&refund); code != errmsg.SUCCSE {
 			return errors.New("Create Refund Error")
 		}
-		log.Println("退款NO")
-		time.Sleep(1 * time.Second)
 		err := TransferReturnWithRetry(context.Background(), mixinClient, traceId, utils.PUSD, userToTopic.UserId, userToTopic.NoRatioPrice, "Refund No Money")
 		if err != nil {
 			return err
