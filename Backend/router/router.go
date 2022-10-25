@@ -49,7 +49,7 @@ func InitRouter() {
 	r.Use(logger.Logger())
 	r.Use(gin.Recovery())
 	r.Use(cors.Cors())
-	r.Use(gin.Logger())
+	// r.Use(gin.Logger())
 
 	r.Static("/static", "./web/front/dist/static")
 	r.Static("/admin", "./web/admin/dist")
