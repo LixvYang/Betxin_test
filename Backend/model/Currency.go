@@ -48,7 +48,7 @@ func UpdateCurrency(data *Currency) int {
 		return errmsg.ERROR
 	}
 
-	// 锁住指定 id 的 User 记录
+	// 锁住指定 id 的 记录
 	if err := tx.Set("gorm:query_option", "FOR UPDATE").Model(&Currency{}).Where("asset_id = ?", data.AssetId).Error; err != nil {
 		tx.Rollback()
 		return errmsg.ERROR

@@ -26,7 +26,7 @@ func Worker(mixpayorder model.MixpayOrder, mixpayRes MixpayResult) error {
 		if err != nil {
 			log.Println("支付价转换失败")
 		}
-		userTotalPrice, err := service.CalculateTotalPriceBySymbol(context.Background(), mixpayRes.Data.PaymentSymbol, payAmount)
+		userTotalPrice, err = service.CalculateTotalPriceBySymbol(context.Background(), mixpayRes.Data.PaymentSymbol, payAmount)
 		if err != nil {
 			log.Println("计算价格转换失败")
 		}
@@ -37,7 +37,7 @@ func Worker(mixpayorder model.MixpayOrder, mixpayRes MixpayResult) error {
 		if err != nil {
 			log.Println("支付价转换失败")
 		}
-		userTotalPrice, err := service.CalculateTotalPriceBySymbol(context.Background(), mixpayRes.Data.PaymentSymbol, payAmount)
+		userTotalPrice, err = service.CalculateTotalPriceBySymbol(context.Background(), mixpayRes.Data.PaymentSymbol, payAmount)
 		if err != nil {
 			log.Println("计算价格转换失败")
 		}

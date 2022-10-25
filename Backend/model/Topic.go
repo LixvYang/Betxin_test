@@ -2,6 +2,7 @@ package model
 
 import (
 	"betxin/utils/errmsg"
+	betxinredis "betxin/utils/redis"
 	"errors"
 	"fmt"
 	"sync"
@@ -57,41 +58,20 @@ func CheckTopic(title string) int {
 	return errmsg.SUCCSE
 }
 
-// 将某个话题停止
+// 将某个话题停止     update topic set is_stop = 1 where tid = '9b47f4d6-9f34-4485-9d4d-c4538e5d25a8'
 func StopTopic(tid string) int {
-	tx := db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-	if err := tx.Error; err != nil {
-		return errmsg.ERROR
-	}
-
-	// 锁住指定 id 记录
-	if err := tx.Set("gorm:query_option", "FOR UPDATE").Model(&Topic{}).Where("tid = ?", tid).Error; err != nil {
-		tx.Rollback()
-		return errmsg.ERROR
-	}
-
-	if err := db.Model(&Topic{}).Where("tid = ?", tid).Error; err != nil {
-		tx.Rollback()
-		return errmsg.ERROR
-	}
-
+	var mutex sync.Mutex
+	mutex.Lock()
+	defer mutex.Unlock()
 	var maps = make(map[string]interface{})
 	maps["is_stop"] = 1
-	fmt.Println(maps)
 	fmt.Println(tid)
 
-	if err := db.Exec("update topic set is_stop = 1 where tid = ?", tid).Error; err != nil {
-		tx.Rollback()
+	if err := db.Model(&Topic{}).Exec("update topic set is_stop = 1 where tid = ?", tid).Error; err != nil {
+		fmt.Println("更新话题id  stop出错")
 		return errmsg.ERROR
 	}
-	if err := tx.Commit().Error; err != nil {
-		return errmsg.ERROR
-	}
+	betxinredis.BatchDel("topic")
 
 	return errmsg.SUCCSE
 }
@@ -234,6 +214,72 @@ func UpdateTopicTotalPrice(tid string, selectWin string, plusPrice decimal.Decim
 			fmt.Errorf("error: ", err)
 		}
 	}
+
+	betxinredis.BatchDel("topic")
+
+	if err := tx.Commit().Error; err != nil {
+		return errmsg.ERROR
+	}
+	return errmsg.SUCCSE
+}
+
+// 减少话题的总价钱
+func RefundTopicTotalPrice(data *Refund, selected string, fee decimal.Decimal) int {
+	// selectWin yes_ratio, no_ratio
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return errmsg.ERROR
+	}
+
+	// 锁住指定 id 记录
+	if err := tx.Set("gorm:query_option", "FOR UPDATE").Model(&Topic{}).Where("tid = ?", data.Tid).Error; err != nil {
+		tx.Rollback()
+		return errmsg.ERROR
+	}
+	fmt.Println("更新话题总价钱")
+	var mutex sync.Mutex
+	mutex.Lock()
+	err := db.Exec("update topic set total_price = total_price - ? where tid = ?", data.RefundPrice.Add(fee), data.Tid).Error
+	if err != nil {
+		fmt.Errorf("error: ", err)
+	}
+	mutex.Unlock()
+
+	// 先扣除手续费
+	if selected == "yes" {
+		err = db.Exec("update topic set yes_ratio = (yes_ratio_price - ?)/total_price where tid = ?", data.RefundPrice.Add(fee), data.Tid).Error
+		if err != nil {
+			fmt.Errorf("error: ", err)
+		}
+		err = db.Exec("update topic set yes_ratio_price = yes_ratio_price - ? where tid = ?", data.RefundPrice.Add(fee), data.Tid).Error
+		if err != nil {
+			fmt.Errorf("error: ", err)
+		}
+		err = db.Exec("update topic set no_ratio = no_ratio_price/total_price where tid = ?", data.Tid).Error
+		if err != nil {
+			fmt.Errorf("error: ", err)
+		}
+	} else {
+		err = db.Exec("update topic set no_ratio = (no_ratio_price - ?)/total_price where tid = ?", data.RefundPrice.Add(fee), data.Tid).Error
+		if err != nil {
+			fmt.Errorf("error: ", err)
+		}
+		err = db.Exec("update topic set no_ratio_price = no_ratio_price - ? where tid = ?", data.RefundPrice.Add(fee), data.Tid).Error
+		if err != nil {
+			fmt.Errorf("error: ", err)
+		}
+		err = db.Exec("update topic set yes_ratio = yes_ratio_price/total_price where tid = ?", data.Tid).Error
+		if err != nil {
+			fmt.Errorf("error: ", err)
+		}
+	}
+
+	betxinredis.BatchDel("topic")
 
 	if err := tx.Commit().Error; err != nil {
 		return errmsg.ERROR

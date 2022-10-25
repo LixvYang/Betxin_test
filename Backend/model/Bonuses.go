@@ -70,7 +70,7 @@ func UpdateBonuse(id int, data *Bonuse) int {
 	maps["trace_id"] = data.TraceId
 	maps["user_id"] = data.UserId
 
-	if err := db.Model(&Category{}).Where("id = ? ", id).Updates(maps).Error; err != nil {
+	if err := db.Model(&Bonuse{}).Where("id = ? ", id).Updates(maps).Error; err != nil {
 		return errmsg.ERROR
 	}
 	if err := tx.Commit().Error; err != nil {

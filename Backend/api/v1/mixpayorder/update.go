@@ -6,7 +6,6 @@ import (
 	"betxin/service/mixpay"
 	"betxin/utils/errmsg"
 	"net/http"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,13 +30,10 @@ func UpdateMixpayOrder(c *gin.Context) {
 		TraceId: u.TraceId,
 	}
 
-	var mutex sync.Mutex
-	mutex.Lock()
 	if code := model.UpdateMixpayOrder(&mixpayorder); code != errmsg.SUCCSE {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
-	mutex.Unlock()
 
 	mixpayRes, err := mixpay.GetMixpayResult(u.OrderId, u.PayeeId)
 	if err != nil {

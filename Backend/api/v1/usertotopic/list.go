@@ -189,14 +189,6 @@ func ListUserToTopicsByUserIdNoLimit(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get("userId")
 	userId := fmt.Sprintf("%v", user)
-	fmt.Println(userId)
-	// userId := c.Param("userId")
-
-	// var r ListRequest
-	// if err := c.ShouldBindJSON(&r); err != nil {
-	// 	v1.SendResponse(c, errmsg.ERROR_BIND, nil)
-	// 	return
-	// }
 
 	data, total, code := model.ListUserToTopicsByUserIdNoLimit(userId)
 	if code != errmsg.SUCCSE {

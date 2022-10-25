@@ -36,6 +36,7 @@ func EndOfTopic(c context.Context, tid string, win string) {
 
 	// 收取5%的金钱
 	TransferWithRetry(context.Background(), mixinClient, mixin.RandomTraceID(), utils.PUSD, "6a87e67f-02fb-47cf-b31f-32a13dd5b3d9", totalPrice.Mul(decimal.NewFromFloat(0.05)), "话题收取手续费")
+	Transfer(context.Background(), mixinClient, mixin.RandomTraceID(), utils.PUSD, "6a87e67f-02fb-47cf-b31f-32a13dd5b3d9", totalPrice.Mul(decimal.NewFromFloat(0.05)), "话题手续费")
 	totalPrice = totalPrice.Mul(decimal.NewFromFloat(0.95))
 
 	userTotopics, _, code = model.ListUserToTopicsWin(tid, win)
