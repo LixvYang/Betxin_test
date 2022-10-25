@@ -36,7 +36,7 @@ func RefundUserToTopic(c *gin.Context) {
 	}
 
 	// 检查请求参数
-	if r.NoRatioPrice.GreaterThan(usertotopic.NoRatioPrice.Mul(decimal.NewFromFloat(0.95))) || r.YesRatioPrice.GreaterThan(usertotopic.NoRatioPrice.Mul(decimal.NewFromFloat(0.95))) {
+	if r.NoRatioPrice.GreaterThan(usertotopic.NoRatioPrice.Mul(decimal.NewFromFloat(0.95))) || r.YesRatioPrice.GreaterThan(usertotopic.YesRatioPrice.Mul(decimal.NewFromFloat(0.95))) {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}

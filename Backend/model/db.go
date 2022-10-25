@@ -47,42 +47,42 @@ func InitDb() {
 	// db.Migrator().DropTable(&User{})
 	// db.Migrator().DropTable(&Category{})
 	// db.Migrator().DropTable(&Topic{})
-	db.Migrator().DropTable(&Collect{})
-	db.Migrator().DropTable(&Bonuse{})
+	// db.Migrator().DropTable(&Collect{})
+	// db.Migrator().DropTable(&Bonuse{})
 	// db.Migrator().DropTable(&Currency{})
-	db.Migrator().DropTable(&MixinMessage{})
-	db.Migrator().DropTable(&SwapOrder{})
-	db.Migrator().DropTable(&MixinNetworkSnapshot{})
-	db.Migrator().DropTable(&MixinOrder{})
-	db.Migrator().DropTable(&UserToTopic{})
-	db.Migrator().DropTable(&Administrator{})
-	db.Migrator().DropTable(&FeedBack{})
-	db.Migrator().DropTable(&SendBack{})
-	db.Migrator().DropTable(&Comment{})
-	db.Migrator().DropTable(&MixpayOrder{})
-	db.Migrator().DropTable(&PraiseComment{})
-	db.Migrator().DropTable(&Refund{})
+	// db.Migrator().DropTable(&MixinMessage{})
+	// db.Migrator().DropTable(&SwapOrder{})
+	// db.Migrator().DropTable(&MixinNetworkSnapshot{})
+	// db.Migrator().DropTable(&MixinOrder{})
+	// db.Migrator().DropTable(&UserToTopic{})
+	// db.Migrator().DropTable(&Administrator{})
+	// db.Migrator().DropTable(&FeedBack{})
+	// db.Migrator().DropTable(&SendBack{})
+	// db.Migrator().DropTable(&Comment{})
+	// db.Migrator().DropTable(&MixpayOrder{})
+	// db.Migrator().DropTable(&PraiseComment{})
+	// db.Migrator().DropTable(&Refund{})
 
 	// 迁移数据表，在没有数据表结构变更时候，建议注释不执行
 	db.AutoMigrate(
-		&User{},
-		&Category{},
-		&Topic{},
-		&Collect{},
-		&Bonuse{},
-		&Currency{},
-		&MixinMessage{},
-		&SwapOrder{},
-		&MixinNetworkSnapshot{},
-		&MixinOrder{},
-		&UserToTopic{},
-		&Administrator{},
-		&FeedBack{},
-		&SendBack{},
-		&Comment{},
-		&MixpayOrder{},
-		&PraiseComment{},
-		&Refund{},
+		// &User{},
+		// &Category{},
+		// &Topic{},
+		// &Collect{},
+		// &Bonuse{},
+		// &Currency{},
+		// &MixinMessage{},
+		// &SwapOrder{},
+		// &MixinNetworkSnapshot{},
+		// &MixinOrder{},
+		// &UserToTopic{},
+		// &Administrator{},
+		// &FeedBack{},
+		// &SendBack{},
+		// &Comment{},
+		// &MixpayOrder{},
+		// &PraiseComment{},
+		// &Refund{},
 	)
 
 	sqlDB, _ := db.DB()
