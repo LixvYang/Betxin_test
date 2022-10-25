@@ -7,6 +7,7 @@ import (
 	"betxin/utils"
 	"betxin/utils/errmsg"
 	"context"
+	"fmt"
 
 	"github.com/fox-one/mixin-sdk-go"
 	"github.com/gin-gonic/gin"
@@ -40,6 +41,7 @@ func RefundUserToTopic(c *gin.Context) {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
+	fmt.Println(r)
 
 	data := model.UserToTopic{
 		UserId:        r.UserId,

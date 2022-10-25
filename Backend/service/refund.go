@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"time"
 
 	"github.com/fox-one/mixin-sdk-go"
 	"github.com/shopspring/decimal"
@@ -14,14 +15,14 @@ import (
 
 // 退还用户资金  5%的手续费
 func RefundUserToTopic(yesFee decimal.Decimal, noFee decimal.Decimal, userToTopic model.UserToTopic) error {
-	traceId := mixin.RandomTraceID()
-	refund := model.Refund{TraceId: traceId}
-	if code := model.CreateRefund(&refund); code != errmsg.SUCCSE {
-		return errors.New("Create Refund Error")
-	}
-
 	// 退yes
 	if userToTopic.YesRatioPrice.GreaterThan(decimal.NewFromFloat(0)) {
+		traceId := mixin.RandomTraceID()
+		refund := model.Refund{TraceId: traceId}
+		if code := model.CreateRefund(&refund); code != errmsg.SUCCSE {
+			return errors.New("Create Refund Error")
+		}
+
 		err := TransferReturnWithRetry(context.Background(), mixinClient, traceId, utils.PUSD, userToTopic.UserId, userToTopic.YesRatioPrice, "Refund YES Money")
 		if err != nil {
 			return err
@@ -41,8 +42,16 @@ func RefundUserToTopic(yesFee decimal.Decimal, noFee decimal.Decimal, userToTopi
 		}
 	}
 
+	log.Println(userToTopic.NoRatioPrice.GreaterThan(decimal.NewFromFloat(0)))
 	// 退no
 	if userToTopic.NoRatioPrice.GreaterThan(decimal.NewFromFloat(0)) {
+		traceId := mixin.RandomTraceID()
+		refund := model.Refund{TraceId: traceId}
+		if code := model.CreateRefund(&refund); code != errmsg.SUCCSE {
+			return errors.New("Create Refund Error")
+		}
+		log.Println("退款NO")
+		time.Sleep(1 * time.Second)
 		err := TransferReturnWithRetry(context.Background(), mixinClient, traceId, utils.PUSD, userToTopic.UserId, userToTopic.NoRatioPrice, "Refund No Money")
 		if err != nil {
 			return err
