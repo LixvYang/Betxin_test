@@ -94,7 +94,6 @@ func Worker(ctx context.Context, client *mixin.Client) error {
 }
 
 func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot *mixin.Snapshot) error {
-
 	if snapshot.Memo == "" {
 		log.Println("memo 为空退出")
 		return nil
