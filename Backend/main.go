@@ -16,6 +16,5 @@ func main() {
 	service.NewMixinClient()
 	go dailycurrency.DailyCurrency(ctx)
 	go service.Worker(ctx, service.MixinClient())
-	
 	router.InitRouter()
 }
