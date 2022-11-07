@@ -48,12 +48,16 @@ func getTopSnapshotCreatedAt(client *mixin.Client, c context.Context) (time.Time
 	return snapshots[0].CreatedAt, nil
 }
 
-func getTopHundredCreated(client *mixin.Client, c context.Context) ([]*mixin.Snapshot, error) {
+func getTopHundredCreated(client *mixin.Client, c context.Context) ([]mixin.Snapshot, error) {
 	snapshots, err := client.ReadSnapshots(c, "", time.Now(), "", 50)
 	if err != nil {
 		return nil, err
 	}
-	return snapshots, nil
+	var snapshot []mixin.Snapshot
+	for i := 0; i < len(snapshots); i++ {
+		snapshot = append(snapshot, *snapshots[i])
+	}
+	return snapshot, nil
 }
 
 func sendTopCreatedAtToChannel(ctx context.Context, stats *Stats, client *mixin.Client) {
@@ -70,7 +74,7 @@ func sendTopCreatedAtToChannel(ctx context.Context, stats *Stats, client *mixin.
 		if snapshot.CreatedAt.After(preCreatedAt) {
 			stats.updatePrevSnapshotCreatedAt(snapshot.CreatedAt)
 			if snapshot.Amount.Cmp(decimal.NewFromInt(0)) == 1 && snapshot.Type == "transfer" {
-				go func(ctx context.Context, client *mixin.Client, snapshot *mixin.Snapshot) {
+				go func(ctx context.Context, client *mixin.Client, snapshot mixin.Snapshot) {
 					log.Println("又有新的订单了")
 					defer wg.Done()
 					HandlerNewMixinSnapshot(ctx, client, snapshot)
@@ -93,7 +97,7 @@ func Worker(ctx context.Context, client *mixin.Client) error {
 	return nil
 }
 
-func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot *mixin.Snapshot) error {
+func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot mixin.Snapshot) error {
 	if snapshot.Memo == "" {
 		log.Println("memo 为空退出")
 		return nil
@@ -180,7 +184,7 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 	return nil
 }
 
-func SwapOrderToPusd(ctx context.Context, client *mixin.Client, Amount decimal.Decimal, InputAssetId string, snapshot *mixin.Snapshot) *mixin.RawTransaction {
+func SwapOrderToPusd(ctx context.Context, client *mixin.Client, Amount decimal.Decimal, InputAssetId string, snapshot mixin.Snapshot) *mixin.RawTransaction {
 	tx, err := TransactionWithRetry(ctx, client, Amount, InputAssetId)
 	if err != nil {
 		uuid := uuid.NewV4()

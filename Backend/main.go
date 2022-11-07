@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+	// defer profile.Start(profile.MemProfile, profile.MemProfileRate(1)).Stop()
 	model.InitDb()
 	var ctx = context.Background()
 	betxinredis.NewRedisClient(ctx)
