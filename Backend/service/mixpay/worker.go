@@ -6,6 +6,7 @@ import (
 	"betxin/utils/errmsg"
 	"context"
 	"log"
+	"time"
 
 	"github.com/shopspring/decimal"
 )
@@ -64,4 +65,12 @@ func Worker(mixpayorder model.MixpayOrder, mixpayRes MixpayResult) error {
 		return err
 	}
 	return nil
+}
+
+// delete day out
+func Delete() {
+	for {
+		// TODO
+		time.Sleep(time.Duration(time.Now().Day()))
+	}
 }
