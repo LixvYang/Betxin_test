@@ -66,3 +66,10 @@ func DeleteCollect(user_id string, tid string) int {
 	}
 	return errmsg.SUCCSE
 }
+
+func DeleteCollectByTid(tid string) int {
+	if err := db.Where("tid = ?", tid).Delete(&Collect{}).Error; err != nil {
+		return errmsg.ERROR
+	}
+	return errmsg.SUCCSE
+}

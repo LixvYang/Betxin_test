@@ -128,7 +128,7 @@ func UpdateUserToTopic(data *UserToTopic) int {
 }
 
 func DeleteUserToTopic(userId, tid string) int {
-	if err := db.Where("user_id = ? AND tid = ?", userId, tid).Delete(&User{}).Error; err != nil {
+	if err := db.Where("user_id = ? AND tid = ?", userId, tid).Delete(&UserToTopic{}).Error; err != nil {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCSE
