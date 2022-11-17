@@ -123,6 +123,15 @@ func DeleteTopic(tid string) int {
 	if err := db.Where("tid = ?", tid).Delete(&Topic{}).Error; err != nil {
 		return errmsg.ERROR
 	}
+	
+	if err := db.Where("tid = ?", tid).Delete(&Collect{}).Error; err != nil {
+		return errmsg.ERROR
+	}
+
+	if err := db.Where("tid = ?", tid).Delete(&UserToTopic{}).Error; err != nil {
+		return errmsg.ERROR
+	}
+
 	return errmsg.SUCCSE
 }
 

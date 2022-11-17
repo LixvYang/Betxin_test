@@ -7,7 +7,6 @@ import (
 	"betxin/utils"
 	"betxin/utils/errmsg"
 	"context"
-	"fmt"
 
 	"github.com/fox-one/mixin-sdk-go"
 	"github.com/gin-gonic/gin"
@@ -41,7 +40,6 @@ func RefundUserToTopic(c *gin.Context) {
 		v1.SendResponse(c, errmsg.ERROR, nil)
 		return
 	}
-	fmt.Println(r)
 
 	data := model.UserToTopic{
 		UserId:        r.UserId,
@@ -68,6 +66,8 @@ func RefundUserToTopic(c *gin.Context) {
 	if r.NoRatioPrice.GreaterThan(decimal.NewFromFloat(0)) {
 		service.Transfer(context.Background(), service.MixinClient(), mixin.RandomTraceID(), utils.PUSD, "6a87e67f-02fb-47cf-b31f-32a13dd5b3d9", usertotopic.NoRatioPrice.Mul(decimal.NewFromFloat(0.05)), "退款手续费")
 	}
+
+	service.CheckUserToTopicZero(r.UserId, r.Tid)
 
 	v1.SendResponse(c, errmsg.SUCCSE, nil)
 }

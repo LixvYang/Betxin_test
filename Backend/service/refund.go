@@ -68,3 +68,17 @@ func RefundUserToTopic(yesFee decimal.Decimal, noFee decimal.Decimal, userToTopi
 
 	return nil
 }
+
+// true -> delete usertopic
+func CheckUserToTopicZero(uid, tid string) {
+	userToTopic, code := model.GetUserToTopic(uid, tid)
+	if code != errmsg.SUCCSE {
+		return
+	}
+	zeroPrice := decimal.NewFromFloat(0)
+	if userToTopic.YesRatioPrice == zeroPrice && userToTopic.NoRatioPrice == zeroPrice {
+		_ = model.DeleteUserToTopic(uid, tid)
+		return
+	}
+	return
+}
