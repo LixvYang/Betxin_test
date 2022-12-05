@@ -38,6 +38,8 @@ func MixinOauth(c *gin.Context) {
 		SessionId:      userinfo.SessionID,
 	}
 
+	session := sessions.Default(c)
+
 	// 如果用户不存在
 	if checked := model.CheckUser(userinfo.UserID); checked != errmsg.SUCCSE {
 		if coded := model.CreateUser(&user); coded != errmsg.SUCCSE {
@@ -45,7 +47,6 @@ func MixinOauth(c *gin.Context) {
 		}
 
 		sessionToken := uuid.NewV4().String()
-		session := sessions.Default(c)
 		session.Set("userId", user.MixinUuid)
 		session.Set("token", sessionToken)
 		session.Save()
@@ -54,13 +55,11 @@ func MixinOauth(c *gin.Context) {
 		if coded := model.UpdateUser(userinfo.UserID, &user); coded != errmsg.SUCCSE {
 			log.Println("Update userInfo fail!!!")
 		}
-
-		session := sessions.Default(c)
-		session.Clear()
-		sessionToken := uuid.NewV4().String()
-		session.Set("userId", user.MixinUuid)
-		session.Set("token", sessionToken)
-		session.Save()
+		// session.Clear()
+		// sessionToken := uuid.NewV4().String()
+		// session.Set("userId", user.MixinUuid)
+		// session.Set("token", sessionToken)
+		// session.Save()
 	}
 	c.Redirect(http.StatusPermanentRedirect, "https://betxin.one")
 	// c.Redirect(http.StatusPermanentRedirect, "http://localhost:8080")
