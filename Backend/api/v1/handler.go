@@ -50,7 +50,7 @@ const (
 	USER_INFO = "user_info_"
 
 	// currency
-	CURRENCY_LIST = "currency_list"
+	CURRENCY_LIST  = "currency_list"
 	CURRENCY_TOTAL = "currency_total"
 )
 
