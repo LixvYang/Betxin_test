@@ -38,7 +38,7 @@ func ListCommentByTid(tid string, limit int, offset int) ([]Comment, int, int) {
 		return comments, int(total), errmsg.ERROR
 	}
 
-	if err := db.Model(&Comment{}).Where("tid = ?", tid).Offset(offset).Limit(limit).Find(&comments).Error; err != nil {
+	if err := db.Model(&Comment{}).Where("tid = ?", tid).Order("praise_num").Offset(offset).Limit(limit).Find(&comments).Error; err != nil {
 		return nil, 0, errmsg.ERROR
 	}
 	return comments, int(total), errmsg.SUCCSE
