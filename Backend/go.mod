@@ -3,6 +3,7 @@ module betxin
 go 1.18
 
 require (
+	github.com/avast/retry-go v2.7.0+incompatible
 	github.com/fox-one/4swap-sdk-go v1.1.10
 	github.com/fox-one/mixin-sdk-go v1.7.1
 	github.com/fox-one/pkg/uuid v0.0.1
@@ -10,7 +11,6 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofrs/uuid v4.3.0+incompatible
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/jasonlvhit/gocron v0.0.1
 	github.com/json-iterator/go v1.1.12
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/qiniu/go-sdk/v7 v7.13.0
@@ -25,12 +25,8 @@ require (
 )
 
 require (
-	github.com/avast/retry-go v2.7.0+incompatible // indirect
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
-	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
-	github.com/google/pprof v0.0.0-20211214055906-6f57359322fd // indirect
-	github.com/pkg/profile v1.7.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.10 // indirect
 	github.com/tklauser/numcpus v0.4.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
