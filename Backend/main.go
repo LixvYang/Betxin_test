@@ -16,6 +16,12 @@ func main() {
 	betxinredis.NewRedisClient(ctx)
 	service.NewMixinClient()
 	go dailycurrency.DailyCurrency(ctx)
-	go service.Worker(ctx, service.MixinClient())
+	go service.Worker(ctx)
+	// go timewheel.At(time.Now().Add(time.Second), "", func() {
+	// 	fmt.Println("nihao")
+	// })
+	// go timewheel.Every(time.Second, func() {
+	// 	fmt.Println("nihao")
+	// })
 	router.InitRouter()
 }

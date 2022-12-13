@@ -5,6 +5,7 @@ import (
 	"betxin/utils"
 	"betxin/utils/errmsg"
 	betxinredis "betxin/utils/redis"
+	"betxin/utils/timewheel"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -14,7 +15,6 @@ import (
 	"time"
 
 	"github.com/fox-one/mixin-sdk-go"
-	"github.com/jasonlvhit/gocron"
 	uuid "github.com/satori/go.uuid"
 	"github.com/shopspring/decimal"
 )
@@ -60,9 +60,9 @@ func getTopHundredCreated(client *mixin.Client, c context.Context) ([]mixin.Snap
 	return snapshot, nil
 }
 
-func sendTopCreatedAtToChannel(ctx context.Context, stats *Stats, client *mixin.Client) {
+func sendTopCreatedAtToChannel(ctx context.Context, stats *Stats) {
 	preCreatedAt := stats.getPrevSnapshotCreatedAt()
-	snapshots, err := getTopHundredCreated(client, ctx)
+	snapshots, err := getTopHundredCreated(mixinClient, ctx)
 	if err != nil {
 		log.Printf("getTopHundredCreated error")
 		return
@@ -75,27 +75,37 @@ func sendTopCreatedAtToChannel(ctx context.Context, stats *Stats, client *mixin.
 			stats.updatePrevSnapshotCreatedAt(snapshot.CreatedAt)
 			if snapshot.Amount.Cmp(decimal.NewFromInt(0)) == 1 && snapshot.Type == "transfer" {
 				go func(ctx context.Context, client *mixin.Client, snapshot mixin.Snapshot) {
-					log.Println("又有新的订单了")
 					defer wg.Done()
 					HandlerNewMixinSnapshot(ctx, client, snapshot)
-				}(ctx, client, snapshot)
+				}(ctx, mixinClient, snapshot)
 			}
 		}
 	}
 	wg.Wait()
 }
 
-func Worker(ctx context.Context, client *mixin.Client) error {
-	// subclients := subclient.NewWorkderQueue(ctx, client)
-	createdAt, err := getTopSnapshotCreatedAt(client, ctx)
+func Worker(ctx context.Context) error {
+	createdAt, err := getTopSnapshotCreatedAt(mixinClient, ctx)
 	if err != nil {
 		return err
 	}
 	stats := &Stats{createdAt}
-	gocron.Every(2).Second().Do(sendTopCreatedAtToChannel, ctx, stats, client)
-	<-gocron.Start()
+	timewheel.Every(time.Second*2, func() {
+		go sendTopCreatedAtToChannel(ctx, stats)
+	})
 	return nil
 }
+
+// func Worker(ctx context.Context, client *mixin.Client) error {
+// 	createdAt, err := getTopSnapshotCreatedAt(client, ctx)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	stats := &Stats{createdAt}
+// 	gocron.Every(2).Second().Do(sendTopCreatedAtToChannel, ctx, stats, client)
+// 	<-gocron.Start()
+// 	return nil
+// }
 
 func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot mixin.Snapshot) error {
 	if snapshot.Memo == "" {
