@@ -15,7 +15,7 @@ type RedisClient struct {
 
 var r *RedisClient
 
-func NewRedisClient(ctx context.Context) *RedisClient {
+func NewRedisClient(ctx context.Context) {
 	r = &RedisClient{
 		ctx: ctx,
 		redisClient: redis.NewClient(&redis.Options{
@@ -25,7 +25,6 @@ func NewRedisClient(ctx context.Context) *RedisClient {
 		},
 		),
 	}
-	return r
 }
 
 func Get(key string) *redis.StringCmd {
@@ -65,39 +64,12 @@ func BatchDel(key string) {
 	if err := iter.Err(); err != nil {
 		panic(err)
 	}
-	// for _, s := range r.redisClient.Keys(r.ctx, key+"*").Val() {
-	// 	Del(s)
-	// }
 }
 
-// func (r *RedisClient) Increment(key string) {
-// 	r.redisClient.Incr(r.ctx, key)
-// }
+func ZADD(key string, members ...*redis.Z) {
+	r.redisClient.ZAdd(r.ctx, key, members...)
+}
 
-// func (r *RedisClient) SAdd(key string, members interface{}) {
-// 	r.redisClient.SAdd(r.ctx, key, members)
-// }
-
-// func (r *RedisClient) SRem(key string, members interface{}) {
-// 	r.redisClient.SRem(r.ctx, key, members)
-// }
-
-// func (r *RedisClient) Smembers(key string) *redis.StringSliceCmd {
-// 	return r.redisClient.SMembers(r.ctx, key)
-// }
-
-// func (r *RedisClient) HSet(key string, expiration time.Duration, values ...interface{}) {
-// 	if r.Exists(key) {
-// 		r.redisClient.Expire(r.ctx, key, expiration)
-// 		return
-// 	}
-// 	r.redisClient.HSet(r.ctx, key, values...)
-// }
-
-// func (r *RedisClient) HGet(key string, field ...string) *redis.SliceCmd {
-// 	return r.redisClient.MGet(r.ctx, field...)
-// }
-
-// func (r *RedisClient) HMGet(key string, field ...string) *redis.SliceCmd {
-// 	return r.redisClient.HMGet(r.ctx, key, field...)
-// }
+func ZRANGE(key string) []string {
+	return r.redisClient.ZRange(r.ctx, key, 0, -1).Val()
+}

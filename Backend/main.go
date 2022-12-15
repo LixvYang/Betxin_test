@@ -10,18 +10,11 @@ import (
 )
 
 func main() {
-	// defer profile.Start(profile.MemProfile, profile.MemProfileRate(1)).Stop()
+	ctx := context.Background()
 	model.InitDb()
-	var ctx = context.Background()
-	betxinredis.NewRedisClient(ctx)
 	service.NewMixinClient()
+	betxinredis.NewRedisClient(ctx)
 	go dailycurrency.DailyCurrency(ctx)
 	go service.Worker(ctx)
-	// go timewheel.At(time.Now().Add(time.Second), "", func() {
-	// 	fmt.Println("nihao")
-	// })
-	// go timewheel.Every(time.Second, func() {
-	// 	fmt.Println("nihao")
-	// })
 	router.InitRouter()
 }
