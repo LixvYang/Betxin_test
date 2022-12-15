@@ -81,6 +81,7 @@ var (
 )
 
 func init() {
+	// start := time.Now()
 	f, err := ini.Load("config/config.ini")
 	if err != nil {
 		log.Printf("配置文件读取错误:%s", err)
@@ -93,6 +94,8 @@ func init() {
 	LoadRedis(f)
 	LoadQiniu(f)
 	LoadMixinAssetId(f)
+	// expired := time.Now().Sub(start)
+	// fmt.Println(expired)
 }
 
 func LoadServer(file *ini.File) {

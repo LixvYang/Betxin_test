@@ -40,6 +40,7 @@ func createMyRender() multitemplate.Renderer {
 
 func InitRouter() {
 	gin.SetMode(utils.AppMode)
+	// gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 
 	// 设置信任网络 []string
@@ -103,7 +104,7 @@ func InitRouter() {
 		auth.GET("/backend/category/:id", category.GetCategoryInfo)
 		auth.POST("/backend/category/add", category.CreateCatrgory)
 		auth.PUT("/backend/category/:id", category.UpdateCategory)
-		auth.DELETE("/backend/category/:id", category.DeleteCategory)	
+		auth.DELETE("/backend/category/:id", category.DeleteCategory)
 		auth.POST("/backend/category/list", category.ListCategories)
 
 		// 收藏
