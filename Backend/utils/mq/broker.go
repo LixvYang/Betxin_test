@@ -35,7 +35,6 @@ func (b *MQ) close() {
 		b.topics = make(map[string][]chan interface{})
 		b.Unlock()
 	}
-	return
 }
 
 func (b *MQ) publish(topic string, pub interface{}) error {
@@ -96,11 +95,11 @@ func (b *MQ) broadcast(msg interface{}, subscribers []chan interface{}) {
 }
 
 func (b *MQ) subscribe(topic string) (<-chan interface{}, error) {
-	select {
-	case <-b.exit:
-		return nil, errors.New("broker closed")
-	default:
-	}
+	// select {
+	// case <-b.exit:
+	// 	return nil, errors.New("broker closed")
+	// default:
+	// }
 
 	ch := make(chan interface{}, b.capacity)
 	b.Lock()

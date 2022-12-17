@@ -27,8 +27,8 @@ func MixinOauth(c *gin.Context) {
 		log.Println("Get userInfo fail!!!")
 		if utils.AppMode == "release" {
 			c.Redirect(http.StatusPermanentRedirect, "https://betxin.one")
-		} else {
-			c.Redirect(http.StatusPermanentRedirect, "http://localhost:3000")
+		} else if utils.AppMode == "debug" {
+			c.Redirect(http.StatusPermanentRedirect, "http://localhost:8080")
 		}
 	}
 
@@ -58,12 +58,15 @@ func MixinOauth(c *gin.Context) {
 		if coded := model.UpdateUser(userinfo.UserID, &user); coded != errmsg.SUCCSE {
 			log.Println("Update userInfo fail!!!")
 		}
-		// session.Clear()
-		// sessionToken := uuid.NewV4().String()
-		// session.Set("userId", user.MixinUuid)
-		// session.Set("token", sessionToken)
-		// session.Save()
+		session.Clear()
+		sessionToken := uuid.NewV4().String()
+		session.Set("userId", user.MixinUuid)
+		session.Set("token", sessionToken)
+		session.Save()
 	}
-	c.Redirect(http.StatusPermanentRedirect, "https://betxin.one")
-	// c.Redirect(http.StatusPermanentRedirect, "http://localhost:8080")
+	if utils.AppMode == "release" {
+		c.Redirect(http.StatusPermanentRedirect, "https://betxin.one")
+	} else if utils.AppMode == "debug" {
+		c.Redirect(http.StatusPermanentRedirect, "http://localhost:8080")
+	}
 }
