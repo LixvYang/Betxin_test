@@ -11,6 +11,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -22,11 +23,10 @@ import (
 
 var (
 	BETXIN_WORKER = "BETXIN_WORKER"
-	mq            *betxinmq.Client
+	mq            = betxinmq.NewMQClient()
 )
 
 func init() {
-	mq = betxinmq.NewMQClient()
 	mq.SetConditions(100)
 	ch, err := mq.Subscribe(BETXIN_WORKER)
 	if err != nil {
@@ -34,12 +34,12 @@ func init() {
 		return
 	}
 	go WorkerSub(ch, mq)
-	defer mq.Close()
 }
 
 func WorkerSub(m <-chan interface{}, c *betxinmq.Client) {
 	for {
-		_ = HandlerNewMixinSnapshot(context.Background(), c.GetPayLoad(m).(mixin.Snapshot))
+		val := c.GetPayLoad(m).(mixin.Snapshot)
+		_ = HandlerNewMixinSnapshot(context.Background(), val)
 	}
 }
 
@@ -100,6 +100,7 @@ func sendTopCreatedAtToChannel(ctx context.Context, stats *Stats) {
 				go func(snapshot mixin.Snapshot) {
 					defer wg.Done()
 					// _ = HandlerNewMixinSnapshot(ctx, client, snapshot)
+					fmt.Println("来新账单啦")
 					mq.Publish(BETXIN_WORKER, snapshot)
 				}(snapshot)
 			}
@@ -132,6 +133,7 @@ func Worker(ctx context.Context) error {
 // }
 
 func HandlerNewMixinSnapshot(ctx context.Context, snapshot mixin.Snapshot) error {
+	fmt.Println("开始处理HandlerNewMixinSnapshot")
 	if snapshot.Memo == "" {
 		log.Println("memo 为空退出")
 		return nil

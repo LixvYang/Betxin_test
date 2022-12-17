@@ -38,3 +38,7 @@ func (c *Client) GetPayLoad(sub <-chan interface{}) interface{} {
 	}
 	return nil
 }
+
+func (c *Client) GetQueue(title string) []chan interface{} {
+	return c.bro.topics[title]
+}
