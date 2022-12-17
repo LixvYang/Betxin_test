@@ -2,6 +2,7 @@ package router
 
 import (
 	"betxin/api/sd"
+	v1 "betxin/api/v1"
 	"betxin/api/v1/administrator"
 	"betxin/api/v1/bonuse"
 	"betxin/api/v1/category"
@@ -23,13 +24,19 @@ import (
 	"betxin/api/v1/usertotopic"
 	"betxin/utils"
 	"betxin/utils/cors"
+	"betxin/utils/errmsg"
 	"betxin/utils/jwt"
 	"betxin/utils/logger"
 	"betxin/utils/session"
+	"log"
+	"os"
+	"syscall"
 
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
 )
+
+var quitch chan os.Signal
 
 func createMyRender() multitemplate.Renderer {
 	p := multitemplate.NewRenderer()
@@ -38,7 +45,9 @@ func createMyRender() multitemplate.Renderer {
 	return p
 }
 
-func InitRouter() {
+func InitRouter(signal chan os.Signal) {
+	quitch = signal
+
 	gin.SetMode(utils.AppMode)
 	// gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
@@ -87,6 +96,7 @@ func InitRouter() {
 	auth := r.Group("api/v1")
 	auth.Use(jwt.JwtToken())
 	{
+		auth.GET("/quit", quitapp)
 		//管理员
 		auth.POST("/backend/administrator/add", administrator.CreateAdministrator)
 		auth.DELETE("/backend/administrator/:id", administrator.DeleteAdministrator)
@@ -216,4 +226,10 @@ func InitRouter() {
 	}
 
 	_ = r.Run(utils.HttpPort)
+}
+
+func quitapp(c *gin.Context) {
+	log.Println("/api/quit has been called, send Signal SIGTERM...")
+	quitch <- syscall.SIGTERM
+	v1.SendResponse(c, errmsg.SUCCSE, nil)
 }

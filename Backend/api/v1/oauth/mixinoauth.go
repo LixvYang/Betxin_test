@@ -25,8 +25,11 @@ func MixinOauth(c *gin.Context) {
 	userinfo, err := service.GetUserInfo(access_token)
 	if err != nil {
 		log.Println("Get userInfo fail!!!")
-		// c.Redirect(http.StatusPermanentRedirect, "http://localhost:8080")
-		c.Redirect(http.StatusPermanentRedirect, "https://betxin.one")
+		if utils.AppMode == "release" {
+			c.Redirect(http.StatusPermanentRedirect, "https://betxin.one")
+		} else {
+			c.Redirect(http.StatusPermanentRedirect, "http://localhost:3000")
+		}
 	}
 
 	user := model.User{
