@@ -2,6 +2,7 @@ package utils
 
 import (
 	"log"
+	"sync"
 
 	"gopkg.in/ini.v1"
 )
@@ -80,7 +81,9 @@ var (
 	ZEN   string
 )
 
-func init() {
+var Setting sync.Once
+
+func Init() {
 	// start := time.Now()
 	f, err := ini.Load("config/config.ini")
 	if err != nil {

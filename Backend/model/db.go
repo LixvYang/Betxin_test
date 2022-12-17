@@ -64,26 +64,26 @@ func InitDb() {
 	// db.Migrator().DropTable(&Refund{})
 
 	// 迁移数据表，在没有数据表结构变更时候，建议注释不执行
-	db.AutoMigrate(
-		// &User{},
-		// &Category{},
-		// &Topic{},
-		// &Collect{},
-		// &Bonuse{},
-		// &Currency{},
-		// &MixinMessage{},
-		// &SwapOrder{},
-		// &MixinNetworkSnapshot{},
-		// &MixinOrder{},
-		// &UserToTopic{},
-		// &Administrator{},
-		// &FeedBack{},
-		// &SendBack{},
-		// &Comment{},
-		// &MixpayOrder{},
-		// &PraiseComment{},
-		// &Refund{},
-	)
+	// db.AutoMigrate(
+	// &User{},
+	// &Category{},
+	// &Topic{},
+	// &Collect{},
+	// &Bonuse{},
+	// &Currency{},
+	// &MixinMessage{},
+	// &SwapOrder{},
+	// &MixinNetworkSnapshot{},
+	// &MixinOrder{},
+	// &UserToTopic{},
+	// &Administrator{},
+	// &FeedBack{},
+	// &SendBack{},
+	// &Comment{},
+	// &MixpayOrder{},
+	// &PraiseComment{},
+	// &Refund{},
+	// )
 
 	sqlDB, _ := db.DB()
 	// SetMaxIdleCons 设置连接池中的最大闲置连接数。

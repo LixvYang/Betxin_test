@@ -76,7 +76,7 @@ func sendTopCreatedAtToChannel(ctx context.Context, stats *Stats) {
 			if snapshot.Amount.Cmp(decimal.NewFromInt(0)) == 1 && snapshot.Type == "transfer" {
 				go func(ctx context.Context, client *mixin.Client, snapshot mixin.Snapshot) {
 					defer wg.Done()
-					HandlerNewMixinSnapshot(ctx, client, snapshot)
+					_ = HandlerNewMixinSnapshot(ctx, client, snapshot)
 				}(ctx, mixinClient, snapshot)
 			}
 		}

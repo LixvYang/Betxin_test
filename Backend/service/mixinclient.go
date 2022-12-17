@@ -2,7 +2,7 @@ package service
 
 import (
 	"betxin/utils"
-	"errors"
+	"log"
 
 	"github.com/fox-one/mixin-sdk-go"
 )
@@ -22,7 +22,7 @@ func NewMixinClient() {
 
 	mixinClient, err = mixin.NewFromKeystore(store)
 	if err != nil {
-		errors.New("mixin bot client error...")
+		log.Fatal(err)
 	}
 }
 

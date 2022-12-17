@@ -49,7 +49,7 @@ func MixinOauth(c *gin.Context) {
 		sessionToken := uuid.NewV4().String()
 		session.Set("userId", user.MixinUuid)
 		session.Set("token", sessionToken)
-		session.Save()
+		_ = session.Save()
 	} else {
 		//用户存在 就更新数据
 		if coded := model.UpdateUser(userinfo.UserID, &user); coded != errmsg.SUCCSE {

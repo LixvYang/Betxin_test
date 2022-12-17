@@ -60,11 +60,11 @@ func RefundUserToTopic(c *gin.Context) {
 
 	// 扣款
 	if r.YesRatioPrice.GreaterThan(decimal.NewFromFloat(0)) {
-		service.Transfer(context.Background(), service.MixinClient(), mixin.RandomTraceID(), utils.PUSD, "6a87e67f-02fb-47cf-b31f-32a13dd5b3d9", usertotopic.YesRatioPrice.Mul(decimal.NewFromFloat(0.05)), "退款手续费")
+		_ = service.Transfer(context.Background(), service.MixinClient(), mixin.RandomTraceID(), utils.PUSD, "6a87e67f-02fb-47cf-b31f-32a13dd5b3d9", usertotopic.YesRatioPrice.Mul(decimal.NewFromFloat(0.05)), "退款手续费")
 	}
 
 	if r.NoRatioPrice.GreaterThan(decimal.NewFromFloat(0)) {
-		service.Transfer(context.Background(), service.MixinClient(), mixin.RandomTraceID(), utils.PUSD, "6a87e67f-02fb-47cf-b31f-32a13dd5b3d9", usertotopic.NoRatioPrice.Mul(decimal.NewFromFloat(0.05)), "退款手续费")
+		_ = service.Transfer(context.Background(), service.MixinClient(), mixin.RandomTraceID(), utils.PUSD, "6a87e67f-02fb-47cf-b31f-32a13dd5b3d9", usertotopic.NoRatioPrice.Mul(decimal.NewFromFloat(0.05)), "退款手续费")
 	}
 
 	service.CheckUserToTopicZero(r.UserId, r.Tid)

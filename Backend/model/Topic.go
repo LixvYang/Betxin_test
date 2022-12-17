@@ -5,6 +5,7 @@ import (
 	betxinredis "betxin/utils/redis"
 	"errors"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -123,7 +124,7 @@ func DeleteTopic(tid string) int {
 	if err := db.Where("tid = ?", tid).Delete(&Topic{}).Error; err != nil {
 		return errmsg.ERROR
 	}
-	
+
 	if err := db.Where("tid = ?", tid).Delete(&Collect{}).Error; err != nil {
 		return errmsg.ERROR
 	}
@@ -193,34 +194,34 @@ func UpdateTopicTotalPrice(tid string, selectWin string, plusPrice decimal.Decim
 	mutex.Lock()
 	err := db.Exec("update topic set total_price = total_price + ? where tid = ?", plusPrice, tid).Error
 	if err != nil {
-		fmt.Errorf("error: ", err)
+		log.Fatal("error: ", err)
 	}
 	mutex.Unlock()
 	if selectWin == "yes_win" {
 		err = db.Exec("update topic set yes_ratio = (? + yes_ratio_price)/total_price where tid = ?", plusPrice, tid).Error
 		if err != nil {
-			fmt.Errorf("error: ", err)
+			log.Fatal("error: ", err)
 		}
 		err = db.Exec("update topic set yes_ratio_price = yes_ratio_price + ? where tid = ?", plusPrice, tid).Error
 		if err != nil {
-			fmt.Errorf("error: ", err)
+			log.Fatal("error: ", err)
 		}
 		err = db.Exec("update topic set no_ratio = no_ratio_price/total_price where tid = ?", tid).Error
 		if err != nil {
-			fmt.Errorf("error: ", err)
+			log.Fatal("error: ", err)
 		}
 	} else {
 		err = db.Exec("update topic set no_ratio = (? + no_ratio_price)/total_price where tid = ?", plusPrice, tid).Error
 		if err != nil {
-			fmt.Errorf("error: ", err)
+			log.Fatal("error: ", err)
 		}
 		err = db.Exec("update topic set no_ratio_price = no_ratio_price + ? where tid = ?", plusPrice, tid).Error
 		if err != nil {
-			fmt.Errorf("error: ", err)
+			log.Fatal("error: ", err)
 		}
 		err = db.Exec("update topic set yes_ratio = yes_ratio_price/total_price where tid = ?", tid).Error
 		if err != nil {
-			fmt.Errorf("error: ", err)
+			log.Fatal("error: ", err)
 		}
 	}
 
@@ -255,7 +256,7 @@ func RefundTopicTotalPrice(data *Refund, selected string, fee decimal.Decimal) i
 	mutex.Lock()
 	err := db.Exec("update topic set total_price = total_price - ? where tid = ?", data.RefundPrice.Add(fee), data.Tid).Error
 	if err != nil {
-		fmt.Errorf("error: ", err)
+		log.Fatal("error: ", err)
 	}
 	mutex.Unlock()
 
@@ -263,28 +264,28 @@ func RefundTopicTotalPrice(data *Refund, selected string, fee decimal.Decimal) i
 	if selected == "yes" {
 		err = db.Exec("update topic set yes_ratio = (yes_ratio_price - ?)/total_price where tid = ?", data.RefundPrice.Add(fee), data.Tid).Error
 		if err != nil {
-			fmt.Errorf("error: ", err)
+			log.Fatal("error: ", err)
 		}
 		err = db.Exec("update topic set yes_ratio_price = yes_ratio_price - ? where tid = ?", data.RefundPrice.Add(fee), data.Tid).Error
 		if err != nil {
-			fmt.Errorf("error: ", err)
+			log.Fatal("error: ", err)
 		}
 		err = db.Exec("update topic set no_ratio = no_ratio_price/total_price where tid = ?", data.Tid).Error
 		if err != nil {
-			fmt.Errorf("error: ", err)
+			log.Fatal("error: ", err)
 		}
 	} else {
 		err = db.Exec("update topic set no_ratio = (no_ratio_price - ?)/total_price where tid = ?", data.RefundPrice.Add(fee), data.Tid).Error
 		if err != nil {
-			fmt.Errorf("error: ", err)
+			log.Fatal("error: ", err)
 		}
 		err = db.Exec("update topic set no_ratio_price = no_ratio_price - ? where tid = ?", data.RefundPrice.Add(fee), data.Tid).Error
 		if err != nil {
-			fmt.Errorf("error: ", err)
+			log.Fatal("error: ", err)
 		}
 		err = db.Exec("update topic set yes_ratio = yes_ratio_price/total_price where tid = ?", data.Tid).Error
 		if err != nil {
-			fmt.Errorf("error: ", err)
+			log.Fatal("error: ", err)
 		}
 	}
 
