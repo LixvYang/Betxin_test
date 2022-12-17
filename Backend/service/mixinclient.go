@@ -3,16 +3,18 @@ package service
 import (
 	"betxin/utils"
 	"log"
+	"sync"
 
 	"github.com/fox-one/mixin-sdk-go"
 )
 
 var (
+	InitMixin   sync.Once
 	mixinClient *mixin.Client
 	err         error
 )
 
-func NewMixinClient() {
+func NewmixinClient() {
 	store := &mixin.Keystore{
 		ClientID:   utils.ClientId,
 		SessionID:  utils.SessionId,

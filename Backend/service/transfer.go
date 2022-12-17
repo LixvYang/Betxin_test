@@ -5,7 +5,6 @@ import (
 	"betxin/utils"
 	"betxin/utils/errmsg"
 	"context"
-	"fmt"
 	"log"
 	"sort"
 	"time"
@@ -60,12 +59,11 @@ func TransferReturn(ctx context.Context, client *mixin.Client, TraceId string, A
 	return nil
 }
 
-//  count: 尝试发送次数
-//  interval: 第一次失败重试间隔时间(后续间隔翻倍)
+// count: 尝试发送次数
+// interval: 第一次失败重试间隔时间(后续间隔翻倍)
 func TransferWithRetry(ctx context.Context, client *mixin.Client, TraceId string, AssetID string, OpponentID string, Amount decimal.Decimal, Memo string) error {
 	return retry.Do(
 		func() error {
-			fmt.Println("尝试转账")
 			err := Transfer(ctx, mixinClient, TraceId, AssetID, OpponentID, Amount, Memo)
 			if err != nil {
 				return err
@@ -84,7 +82,7 @@ func Transfer(ctx context.Context, client *mixin.Client, TraceId string, AssetID
 		TraceID:    TraceId,
 		Memo:       Memo,
 	}
-	
+
 	tx, err := client.Transfer(ctx, transferInput, utils.Pin)
 	if err != nil {
 		log.Println(err)
@@ -109,8 +107,8 @@ func Transfer(ctx context.Context, client *mixin.Client, TraceId string, AssetID
 	return nil
 }
 
-//  count: 尝试发送次数
-//  interval: 第一次失败重试间隔时间(后续间隔翻倍)
+// count: 尝试发送次数
+// interval: 第一次失败重试间隔时间(后续间隔翻倍)
 func TransactionWithRetry(ctx context.Context, client *mixin.Client, Amount decimal.Decimal, InputAssetID string) (*mixin.RawTransaction, error) {
 	var rawTransaction *mixin.RawTransaction
 	err := retry.Do(
@@ -215,4 +213,3 @@ func CalculateTotalPriceBySymbol(ctx context.Context, Symbol string, amount deci
 	}
 	return asset.PriceUsd.Mul(amount), nil
 }
-

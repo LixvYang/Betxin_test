@@ -79,7 +79,7 @@ func EndOfTopic(c context.Context, tid string, win string) {
 
 	// send for users
 	for _, userBounse := range userBounses {
-		 _ = TransferWithRetry(c, mixinClient, userBounse.TraceId, utils.PUSD, userBounse.UserId, userBounse.percentage.Mul(totalPrice), userBounse.Memo)
+		_ = TransferWithRetry(c, mixinClient, userBounse.TraceId, utils.PUSD, userBounse.UserId, userBounse.percentage.Mul(totalPrice), userBounse.Memo)
 		time.Sleep(1 * time.Second)
 	}
 }

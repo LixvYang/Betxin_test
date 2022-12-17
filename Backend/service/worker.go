@@ -4,12 +4,14 @@ import (
 	"betxin/model"
 	"betxin/utils"
 	"betxin/utils/errmsg"
+	betxinmq "betxin/utils/mq"
 	betxinredis "betxin/utils/redis"
 	"betxin/utils/timewheel"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -18,6 +20,29 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/shopspring/decimal"
 )
+
+var (
+	BETXIN_WORKER = "BETXIN_WORKER"
+	mq            *betxinmq.Client
+)
+
+func init() {
+	mq = betxinmq.NewMQClient()
+	mq.SetConditions(100)
+	ch, err := mq.Subscribe(BETXIN_WORKER)
+	if err != nil {
+		log.Println("subscribe failed")
+		return
+	}
+	go WorkerSub(ch, mq)
+	defer mq.Close()
+}
+
+func WorkerSub(m <-chan interface{}, c *betxinmq.Client) {
+	for {
+		_ = HandlerNewMixinSnapshot(context.Background(), c.GetPayLoad(m).(mixin.Snapshot))
+	}
+}
 
 type Memo struct {
 	Tid      string `json:"tid"`
@@ -68,16 +93,18 @@ func sendTopCreatedAtToChannel(ctx context.Context, stats *Stats) {
 		return
 	}
 	var wg sync.WaitGroup
+	fmt.Println(11)
 
 	for _, snapshot := range snapshots {
 		wg.Add(1)
 		if snapshot.CreatedAt.After(preCreatedAt) {
 			stats.updatePrevSnapshotCreatedAt(snapshot.CreatedAt)
 			if snapshot.Amount.Cmp(decimal.NewFromInt(0)) == 1 && snapshot.Type == "transfer" {
-				go func(ctx context.Context, client *mixin.Client, snapshot mixin.Snapshot) {
+				go func(snapshot mixin.Snapshot) {
 					defer wg.Done()
-					_ = HandlerNewMixinSnapshot(ctx, client, snapshot)
-				}(ctx, mixinClient, snapshot)
+					// _ = HandlerNewMixinSnapshot(ctx, client, snapshot)
+					mq.Publish(BETXIN_WORKER, snapshot)
+				}(snapshot)
 			}
 		}
 	}
@@ -107,7 +134,7 @@ func Worker(ctx context.Context) error {
 // 	return nil
 // }
 
-func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot mixin.Snapshot) error {
+func HandlerNewMixinSnapshot(ctx context.Context, snapshot mixin.Snapshot) error {
 	if snapshot.Memo == "" {
 		log.Println("memo 为空退出")
 		return nil
@@ -130,7 +157,7 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 	///  memo  traceId:不应该是随机id 应该是把userid和买的topic id yesorno放在一起
 	tx := &mixin.RawTransaction{}
 	if snapshot.AssetID != utils.PUSD {
-		tx = SwapOrderToPusd(ctx, client, snapshot.Amount, snapshot.AssetID, snapshot)
+		tx = SwapOrderToPusd(ctx, snapshot.Amount, snapshot.AssetID, snapshot)
 	} else {
 		tx.Amount = snapshot.Amount.String()
 		tx.AssetID = snapshot.AssetID
@@ -194,12 +221,12 @@ func HandlerNewMixinSnapshot(ctx context.Context, client *mixin.Client, snapshot
 	return nil
 }
 
-func SwapOrderToPusd(ctx context.Context, client *mixin.Client, Amount decimal.Decimal, InputAssetId string, snapshot mixin.Snapshot) *mixin.RawTransaction {
-	tx, err := TransactionWithRetry(ctx, client, Amount, InputAssetId)
+func SwapOrderToPusd(ctx context.Context, Amount decimal.Decimal, InputAssetId string, snapshot mixin.Snapshot) *mixin.RawTransaction {
+	tx, err := TransactionWithRetry(ctx, mixinClient, Amount, InputAssetId)
 	if err != nil {
 		uuid := uuid.NewV4()
 		model.CreateSendBack(&model.SendBack{TraceId: uuid.String()})
-		err := TransferReturnWithRetry(ctx, client, uuid.String(), InputAssetId, snapshot.OpponentID, snapshot.Amount, "Swap 失败")
+		err := TransferReturnWithRetry(ctx, mixinClient, uuid.String(), InputAssetId, snapshot.OpponentID, snapshot.Amount, "Swap 失败")
 		switch {
 		case mixin.IsErrorCodes(err, mixin.InsufficientBalance):
 			log.Println("insufficient balance")
