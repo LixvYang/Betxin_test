@@ -6,7 +6,10 @@ import (
 	"time"
 )
 
-var tw = New(time.Second, 3600)
+var (
+	tw       = New(time.Second, 3600)
+	everyMap = make(map[string]bool)
+)
 
 func init() {
 	tw.Start()
@@ -19,15 +22,24 @@ func Delay(duration time.Duration, key string, job func()) {
 
 // At executes job at given time
 func At(at time.Time, key string, job func()) {
-	tw.AddJob(at.Sub(time.Now()), key, job)
+	// tw.AddJob(at.Sub(time.Now()), key, job)
+	tw.AddJob(time.Until(at), key, job)
 }
 
 // Every execfutes job at every time
 func Every(every time.Duration, job func()) {
-	for {
-		// tw.AddJob(every, strconv.Itoa(int(rand.Float64())), job)
-		At(time.Now().Add(every), strconv.Itoa(int(rand.Float64())), job)
-		time.Sleep(every)
+	randomInt := strconv.Itoa(int(rand.Float64()))
+	// until randomInt is unique
+	for everyMap[randomInt] {
+		randomInt = strconv.Itoa(int(rand.Float64()))
+	}
+
+	everyMap[randomInt] = true
+
+	t := time.NewTicker(every)
+	defer t.Stop()
+	for range t.C {
+		At(time.Now().Add(every), randomInt, job)
 	}
 }
 

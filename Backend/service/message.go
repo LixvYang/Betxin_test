@@ -16,5 +16,5 @@ func CreateMessage(ctx context.Context, client *mixin.Client, msg *model.MixinMe
 		Category:       mixin.MessageCategoryPlainText,
 		Data:           msg.Content,
 	}
-	client.SendMessage(ctx, input)
+	_ = client.SendMessage(ctx, input)
 }

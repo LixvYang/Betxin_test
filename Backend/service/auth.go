@@ -9,6 +9,7 @@ import (
 type UserInfo struct {
 	Data Data `json:"data"`
 }
+
 type Data struct {
 	UserID         string `json:"user_id"`
 	IdentityNumber string `json:"identity_number"`

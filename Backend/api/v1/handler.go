@@ -2,15 +2,11 @@ package v1
 
 import (
 	"betxin/utils/errmsg"
-	"betxin/utils/redis"
-	"context"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
-
-var ctx = context.Background()
 
 const (
 	REDISEXPIRE = time.Hour * 2
@@ -67,8 +63,4 @@ func SendResponse(c *gin.Context, code int, data interface{}) {
 		Message: message,
 		Data:    data,
 	})
-}
-
-func Redis() {
-	redis.NewRedisClient(ctx)
 }

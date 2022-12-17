@@ -2,17 +2,19 @@ package service
 
 import (
 	"betxin/utils"
-	"errors"
+	"log"
+	"sync"
 
 	"github.com/fox-one/mixin-sdk-go"
 )
 
 var (
-	mixinClient *mixin.Client
+	InitMixin   sync.Once
+	MixinClient *mixin.Client
 	err         error
 )
 
-func NewMixinClient() {
+func InitMixinClient() {
 	store := &mixin.Keystore{
 		ClientID:   utils.ClientId,
 		SessionID:  utils.SessionId,
@@ -20,12 +22,8 @@ func NewMixinClient() {
 		PinToken:   utils.PinToken,
 	}
 
-	mixinClient, err = mixin.NewFromKeystore(store)
+	MixinClient, err = mixin.NewFromKeystore(store)
 	if err != nil {
-		errors.New("mixin bot client error...")
+		log.Fatal(err)
 	}
-}
-
-func MixinClient() *mixin.Client {
-	return mixinClient
 }

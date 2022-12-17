@@ -24,7 +24,6 @@ func Marshal[T any](j T) string {
 }
 
 // 字符串转JSON
-func Unmarshal[T any](s string, data T) error {
-	return json.Unmarshal([]byte(s), &data)
+func Unmarshal[T any](s string, data T) {
+	_ = json.Unmarshal([]byte(s), &data)
 }
-
