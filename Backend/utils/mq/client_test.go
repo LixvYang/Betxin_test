@@ -2,19 +2,19 @@ package mq
 
 import (
 	"fmt"
+	"math/rand"
+	"strconv"
 	"sync"
 	"testing"
 )
 
 type Message struct {
-	ID   int
+	ID   float64
 	Name string
 }
 
 func TestClient(t *testing.T) {
 	var m Message
-	m.ID = 12
-	m.Name = "llllllsssssss"
 
 	b := NewMQClient()
 	b.SetConditions(100)
@@ -22,8 +22,11 @@ func TestClient(t *testing.T) {
 
 	for i := 0; i < 10; i++ {
 		topic := fmt.Sprintf("Golang梦工厂%d", i)
-		payload := m
 
+		m.ID = rand.Float64()
+		m.Name = strconv.Itoa(rand.Int())
+
+		payload := m
 		ch, err := b.Subscribe(topic)
 		if err != nil {
 			t.Fatal(err)

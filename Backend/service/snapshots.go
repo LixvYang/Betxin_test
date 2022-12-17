@@ -1,6 +1,7 @@
 package service
 
 import (
+	"betxin/utils"
 	"bytes"
 	"crypto/ed25519"
 	"crypto/sha256"
@@ -10,7 +11,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
-	"betxin/utils"
 
 	"github.com/fox-one/pkg/uuid"
 	"github.com/golang-jwt/jwt"
@@ -133,7 +133,7 @@ func SignAuthenticationToken(uid, sid, privateKey, method, uri, body string) (st
 	}
 	// more validate the private key
 	if len(priv) != 64 {
-		return "", fmt.Errorf("Bad ed25519 private key %s", priv)
+		return "", fmt.Errorf("bad ed25519 private key %s", priv)
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, claims)
 	return token.SignedString(ed25519.PrivateKey(priv))

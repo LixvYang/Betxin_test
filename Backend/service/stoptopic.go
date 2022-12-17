@@ -35,8 +35,8 @@ func EndOfTopic(c context.Context, tid string, win string) {
 	}
 
 	// 收取5%的金钱
-	_ = TransferWithRetry(context.Background(), mixinClient, mixin.RandomTraceID(), utils.PUSD, "6a87e67f-02fb-47cf-b31f-32a13dd5b3d9", totalPrice.Mul(decimal.NewFromFloat(0.05)), "话题收取手续费")
-	_ = Transfer(context.Background(), mixinClient, mixin.RandomTraceID(), utils.PUSD, "6a87e67f-02fb-47cf-b31f-32a13dd5b3d9", totalPrice.Mul(decimal.NewFromFloat(0.05)), "话题手续费")
+	_ = TransferWithRetry(context.Background(), MixinClient, mixin.RandomTraceID(), utils.PUSD, "6a87e67f-02fb-47cf-b31f-32a13dd5b3d9", totalPrice.Mul(decimal.NewFromFloat(0.05)), "话题收取手续费")
+	_ = Transfer(context.Background(), MixinClient, mixin.RandomTraceID(), utils.PUSD, "6a87e67f-02fb-47cf-b31f-32a13dd5b3d9", totalPrice.Mul(decimal.NewFromFloat(0.05)), "话题手续费")
 	totalPrice = totalPrice.Mul(decimal.NewFromFloat(0.95))
 
 	userTotopics, _, code = model.ListUserToTopicsWin(tid, win)
@@ -79,7 +79,7 @@ func EndOfTopic(c context.Context, tid string, win string) {
 
 	// send for users
 	for _, userBounse := range userBounses {
-		_ = TransferWithRetry(c, mixinClient, userBounse.TraceId, utils.PUSD, userBounse.UserId, userBounse.percentage.Mul(totalPrice), userBounse.Memo)
+		_ = TransferWithRetry(c, MixinClient, userBounse.TraceId, utils.PUSD, userBounse.UserId, userBounse.percentage.Mul(totalPrice), userBounse.Memo)
 		time.Sleep(1 * time.Second)
 	}
 }

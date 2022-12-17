@@ -11,7 +11,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -87,14 +86,12 @@ func getTopHundredCreated(client *mixin.Client, c context.Context) ([]mixin.Snap
 
 func sendTopCreatedAtToChannel(ctx context.Context, stats *Stats) {
 	preCreatedAt := stats.getPrevSnapshotCreatedAt()
-	snapshots, err := getTopHundredCreated(mixinClient, ctx)
+	snapshots, err := getTopHundredCreated(MixinClient, ctx)
 	if err != nil {
 		log.Printf("getTopHundredCreated error")
 		return
 	}
 	var wg sync.WaitGroup
-	fmt.Println(11)
-
 	for _, snapshot := range snapshots {
 		wg.Add(1)
 		if snapshot.CreatedAt.After(preCreatedAt) {
@@ -112,7 +109,7 @@ func sendTopCreatedAtToChannel(ctx context.Context, stats *Stats) {
 }
 
 func Worker(ctx context.Context) error {
-	createdAt, err := getTopSnapshotCreatedAt(mixinClient, ctx)
+	createdAt, err := getTopSnapshotCreatedAt(MixinClient, ctx)
 	if err != nil {
 		return err
 	}
@@ -222,11 +219,11 @@ func HandlerNewMixinSnapshot(ctx context.Context, snapshot mixin.Snapshot) error
 }
 
 func SwapOrderToPusd(ctx context.Context, Amount decimal.Decimal, InputAssetId string, snapshot mixin.Snapshot) *mixin.RawTransaction {
-	tx, err := TransactionWithRetry(ctx, mixinClient, Amount, InputAssetId)
+	tx, err := TransactionWithRetry(ctx, MixinClient, Amount, InputAssetId)
 	if err != nil {
 		uuid := uuid.NewV4()
 		model.CreateSendBack(&model.SendBack{TraceId: uuid.String()})
-		err := TransferReturnWithRetry(ctx, mixinClient, uuid.String(), InputAssetId, snapshot.OpponentID, snapshot.Amount, "Swap 失败")
+		err := TransferReturnWithRetry(ctx, MixinClient, uuid.String(), InputAssetId, snapshot.OpponentID, snapshot.Amount, "Swap 失败")
 		switch {
 		case mixin.IsErrorCodes(err, mixin.InsufficientBalance):
 			log.Println("insufficient balance")

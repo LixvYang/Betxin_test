@@ -1,25 +1,37 @@
 package main
 
-import "betxin/service"
+import (
+	"betxin/model"
+	"betxin/router"
+	"betxin/service"
+	"betxin/service/dailycurrency"
+	"betxin/utils"
+	"context"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+
+	betxinredis "betxin/utils/redis"
+)
 
 func main() {
-	// signalch := make(chan os.Signal, 1)
-	// ctx := context.Background()
-	service.InitMixin.Do(service.NewmixinClient)
+	signalch := make(chan os.Signal, 1)
+	utils.Setting.Do(utils.Init)
+	service.InitMixin.Do(service.InitMixinClient)
 
-	// utils.Setting.Do(utils.Init)
-	// model.InitDb()
-	// betxinredis.NewRedisClient(ctx)
-	// go dailycurrency.DailyCurrency(ctx)
-	// go service.Worker(ctx)
-	// go router.InitRouter(signalch)
+	ctx := context.Background()
+	model.InitDb()
+	betxinredis.NewRedisClient(ctx)
+	go dailycurrency.DailyCurrency(ctx)
+	go service.Worker(ctx)
+	go router.InitRouter(signalch)
 
-	// //attach signal
-	// signal.Notify(signalch, os.Interrupt, os.Kill, syscall.SIGTERM)
-	// signalType := <-signalch
-	// signal.Stop(signalch)
-
-	// //cleanup before exit
-	// log.Println("On Signal <%s>", signalType)
-	// log.Println("Exit command received. Exiting...")
+	//attach signal
+	signal.Notify(signalch, os.Interrupt, syscall.SIGTERM)
+	signalType := <-signalch
+	signal.Stop(signalch)
+	//cleanup before exit
+	log.Printf("On Signal <%s>", signalType)
+	log.Println("Exit command received. Exiting...")
 }

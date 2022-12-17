@@ -20,7 +20,7 @@ import (
 func TransferReturnWithRetry(ctx context.Context, client *mixin.Client, TraceId string, AssetID string, OpponentID string, Amount decimal.Decimal, Memo string) error {
 	return retry.Do(
 		func() error {
-			err := TransferReturn(ctx, mixinClient, TraceId, AssetID, OpponentID, Amount, Memo)
+			err := TransferReturn(ctx, MixinClient, TraceId, AssetID, OpponentID, Amount, Memo)
 			if err != nil {
 				return err
 			}
@@ -64,7 +64,7 @@ func TransferReturn(ctx context.Context, client *mixin.Client, TraceId string, A
 func TransferWithRetry(ctx context.Context, client *mixin.Client, TraceId string, AssetID string, OpponentID string, Amount decimal.Decimal, Memo string) error {
 	return retry.Do(
 		func() error {
-			err := Transfer(ctx, mixinClient, TraceId, AssetID, OpponentID, Amount, Memo)
+			err := Transfer(ctx, MixinClient, TraceId, AssetID, OpponentID, Amount, Memo)
 			if err != nil {
 				return err
 			}

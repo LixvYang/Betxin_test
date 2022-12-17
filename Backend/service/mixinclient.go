@@ -10,11 +10,11 @@ import (
 
 var (
 	InitMixin   sync.Once
-	mixinClient *mixin.Client
+	MixinClient *mixin.Client
 	err         error
 )
 
-func NewmixinClient() {
+func InitMixinClient() {
 	store := &mixin.Keystore{
 		ClientID:   utils.ClientId,
 		SessionID:  utils.SessionId,
@@ -22,12 +22,8 @@ func NewmixinClient() {
 		PinToken:   utils.PinToken,
 	}
 
-	mixinClient, err = mixin.NewFromKeystore(store)
+	MixinClient, err = mixin.NewFromKeystore(store)
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func MixinClient() *mixin.Client {
-	return mixinClient
 }

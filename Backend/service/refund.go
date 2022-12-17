@@ -19,10 +19,10 @@ func RefundUserToTopic(yesFee decimal.Decimal, noFee decimal.Decimal, userToTopi
 		traceId := mixin.RandomTraceID()
 		refund := model.Refund{TraceId: traceId}
 		if code := model.CreateRefund(&refund); code != errmsg.SUCCSE {
-			return errors.New("Create Refund Error")
+			return errors.New("create refund error")
 		}
 
-		err := TransferReturnWithRetry(context.Background(), mixinClient, traceId, utils.PUSD, userToTopic.UserId, userToTopic.YesRatioPrice, "Refund YES Money")
+		err := TransferReturnWithRetry(context.Background(), MixinClient, traceId, utils.PUSD, userToTopic.UserId, userToTopic.YesRatioPrice, "Refund YES Money")
 		if err != nil {
 			return err
 		}
@@ -45,9 +45,9 @@ func RefundUserToTopic(yesFee decimal.Decimal, noFee decimal.Decimal, userToTopi
 		traceId := mixin.RandomTraceID()
 		refund := model.Refund{TraceId: traceId}
 		if code := model.CreateRefund(&refund); code != errmsg.SUCCSE {
-			return errors.New("Create Refund Error")
+			return errors.New("create refund error")
 		}
-		err := TransferReturnWithRetry(context.Background(), mixinClient, traceId, utils.PUSD, userToTopic.UserId, userToTopic.NoRatioPrice, "Refund No Money")
+		err := TransferReturnWithRetry(context.Background(), MixinClient, traceId, utils.PUSD, userToTopic.UserId, userToTopic.NoRatioPrice, "Refund No Money")
 		if err != nil {
 			return err
 		}
@@ -80,5 +80,4 @@ func CheckUserToTopicZero(uid, tid string) {
 		_ = model.DeleteUserToTopic(uid, tid)
 		return
 	}
-	return
 }
