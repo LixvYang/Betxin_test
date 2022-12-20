@@ -81,7 +81,7 @@ var (
 	ZEN   string
 )
 
-var Setting sync.Once
+var InitSetting sync.Once
 
 func Init() {
 	// start := time.Now()

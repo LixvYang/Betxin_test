@@ -21,7 +21,7 @@ func TestClient(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for i := 0; i < 10; i++ {
-		topic := fmt.Sprintf("Golang", i)
+		topic := "Golang"
 
 		m.ID = rand.Float64()
 		m.Name = strconv.Itoa(rand.Int())

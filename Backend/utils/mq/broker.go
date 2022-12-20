@@ -10,14 +10,14 @@ type MQ struct {
 	exit     chan bool
 	capacity int
 
-	topics       map[string][]chan interface{} // key： topic  value ： queue
-	sync.RWMutex                               // 同步锁
+	topics       map[string][]chan any // key： topic  value ： queue
+	sync.RWMutex                       // 同步锁
 }
 
 func NewMQ() *MQ {
 	return &MQ{
 		exit:   make(chan bool),
-		topics: make(map[string][]chan interface{}),
+		topics: make(map[string][]chan any),
 	}
 }
 
@@ -32,7 +32,7 @@ func (b *MQ) close() {
 	default:
 		close(b.exit)
 		b.Lock()
-		b.topics = make(map[string][]chan interface{})
+		b.topics = make(map[string][]chan any)
 		b.Unlock()
 	}
 }
