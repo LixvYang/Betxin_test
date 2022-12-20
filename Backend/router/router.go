@@ -56,9 +56,9 @@ func InitRouter(signal chan os.Signal) {
 	// nil 为不计算，避免性能消耗，上线应当设置
 	_ = r.SetTrustedProxies(nil)
 	r.HTMLRender = createMyRender()
-	r.Use(logger.Logger())
-	r.Use(gin.Recovery())
-	r.Use(cors.Cors())
+	r.Use(logger.Logger(), gin.Recovery(), cors.Cors())
+	// r.Use(gin.Recovery())
+	// r.Use(cors.Cors())
 	if utils.AppMode != "release" {
 		r.Use(gin.Logger())
 	}

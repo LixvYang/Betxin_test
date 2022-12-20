@@ -17,7 +17,7 @@ import (
 
 func main() {
 	signalch := make(chan os.Signal, 1)
-	utils.Setting.Do(utils.Init)
+	utils.InitSetting.Do(utils.Init)
 	service.InitMixin.Do(service.InitMixinClient)
 
 	ctx := context.Background()

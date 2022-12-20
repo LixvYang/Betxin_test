@@ -38,7 +38,10 @@ func init() {
 
 func WorkerSub(m <-chan interface{}, c *betxinmq.Client) {
 	for {
-		val := c.GetPayLoad(m).(mixin.Snapshot)
+		val, ok := c.GetPayLoad(m).(mixin.Snapshot)
+		if !ok {
+			return
+		}
 		_ = HandlerNewMixinSnapshot(context.Background(), val)
 	}
 }
