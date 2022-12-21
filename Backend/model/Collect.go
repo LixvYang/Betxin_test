@@ -1,8 +1,9 @@
 package model
 
 import (
-	"betxin/utils/errmsg"
 	"time"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 )
 
 type Collect struct {
@@ -24,7 +25,7 @@ func CheckCollect(userId string, Tid string) int {
 	return errmsg.SUCCSE
 }
 
-//Create Collect
+// Create Collect
 func CreateCollect(data *Collect) int {
 	if err := db.Create(&data).Error; err != nil {
 		return errmsg.ERROR

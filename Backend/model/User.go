@@ -1,8 +1,9 @@
 package model
 
 import (
-	"betxin/utils/errmsg"
 	"time"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 )
 
 type User struct {
@@ -37,7 +38,6 @@ func CreateUser(data *User) int {
 	return errmsg.SUCCSE
 }
 
-//
 func GetUserById(user_id string) (User, int) {
 	var user User
 	if err := db.Model(&user).Where("mixin_uuid = ?", user_id).First(&user).Error; err != nil {
@@ -46,7 +46,7 @@ func GetUserById(user_id string) (User, int) {
 	return user, errmsg.SUCCSE
 }
 
-//Delete user
+// Delete user
 func DeleteUser(user_id string) int {
 	if err := db.Where("user_id = ?", user_id).Delete(User{}).Error; err != nil {
 		return errmsg.ERROR
@@ -92,7 +92,7 @@ func GetUserByName(full_name string) (*User, int) {
 	return user, errmsg.SUCCSE
 }
 
-//List users
+// List users
 func ListUser(offset, limit int) ([]User, int, int) {
 	var users []User
 	var count int64

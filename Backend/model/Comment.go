@@ -1,9 +1,10 @@
 package model
 
 import (
-	"betxin/utils/errmsg"
 	"fmt"
 	"time"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 
 	"gorm.io/gorm"
 )

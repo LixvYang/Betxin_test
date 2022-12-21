@@ -1,12 +1,16 @@
 package topic
 
 import (
-	v1 "betxin/api/v1"
-	"betxin/model"
-	"betxin/service"
-	"betxin/utils/errmsg"
 	"fmt"
+
+	"github.com/lixvyang/betxin/internal/service"
+
+	"github.com/lixvyang/betxin/model"
+
+	v1 "github.com/lixvyang/betxin/api/v1"
+
 	"github.com/gin-gonic/gin"
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 )
 
 type StopRequest struct {

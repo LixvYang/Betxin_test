@@ -1,11 +1,14 @@
 package administrator
 
 import (
-	v1 "betxin/api/v1"
-	"betxin/model"
-	"betxin/utils/errmsg"
-	myjwt "betxin/utils/jwt"
 	"time"
+
+	"github.com/lixvyang/betxin/model"
+
+	v1 "github.com/lixvyang/betxin/api/v1"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
+	myjwt "github.com/lixvyang/betxin/internal/utils/jwt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"

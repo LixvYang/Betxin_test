@@ -1,21 +1,23 @@
 package message
 
 import (
-	v1 "betxin/api/v1"
-	"betxin/model"
-	"betxin/utils/errmsg"
+	"github.com/lixvyang/betxin/model"
+
+	v1 "github.com/lixvyang/betxin/api/v1"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 
 	"github.com/gin-gonic/gin"
 )
 
 type ListResponse struct {
-	TotalCount int              `json:"totalCount"`
+	TotalCount int                  `json:"totalCount"`
 	List       []model.MixinMessage `json:"list"`
 }
 
 type ListRequest struct {
-	Offset int `json:"offset"`
-	Limit  int `json:"limit"`
+	Offset int    `json:"offset"`
+	Limit  int    `json:"limit"`
 	UserId string `json:"user_id"`
 }
 

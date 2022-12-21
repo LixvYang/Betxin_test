@@ -1,12 +1,15 @@
 package oauth
 
 import (
-	"betxin/model"
-	"betxin/service"
-	"betxin/utils"
-	"betxin/utils/errmsg"
 	"log"
 	"net/http"
+
+	"github.com/lixvyang/betxin/internal/service"
+
+	"github.com/lixvyang/betxin/model"
+
+	"github.com/lixvyang/betxin/internal/utils"
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 
 	"github.com/fox-one/mixin-sdk-go"
 	"github.com/gin-contrib/sessions"

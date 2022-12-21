@@ -1,10 +1,12 @@
 package category
 
 import (
-	v1 "betxin/api/v1"
-	"betxin/model"
-	"betxin/utils/errmsg"
-	betxinredis "betxin/utils/redis"
+	"github.com/lixvyang/betxin/model"
+
+	v1 "github.com/lixvyang/betxin/api/v1"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
+	betxinredis "github.com/lixvyang/betxin/internal/utils/redis"
 
 	"github.com/gin-gonic/gin"
 )

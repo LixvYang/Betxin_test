@@ -1,7 +1,7 @@
 package model
 
 import (
-	"betxin/utils/errmsg"
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 
 	"gorm.io/gorm"
 )
@@ -21,7 +21,7 @@ func CheckCategory(category_name string) int {
 	return errmsg.SUCCSE
 }
 
-//Create category
+// Create category
 func CreateCatrgory(data *Category) int {
 	if err := db.Create(&data).Error; err != nil {
 		return errmsg.ERROR

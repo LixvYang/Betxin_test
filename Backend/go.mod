@@ -1,4 +1,4 @@
-module betxin
+module github.com/lixvyang/betxin
 
 go 1.18
 

@@ -1,10 +1,13 @@
 package upload
 
 import (
-	v1 "betxin/api/v1"
-	"betxin/service/upload"
-	"betxin/utils/errmsg"
 	"fmt"
+
+	"github.com/lixvyang/betxin/internal/service/upload"
+
+	v1 "github.com/lixvyang/betxin/api/v1"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 
 	"github.com/gin-gonic/gin"
 )

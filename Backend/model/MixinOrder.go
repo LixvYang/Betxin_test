@@ -2,9 +2,10 @@
 package model
 
 import (
-	"betxin/utils/errmsg"
 	"sync"
 	"time"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"

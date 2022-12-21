@@ -1,10 +1,13 @@
 package mixpayorder
 
 import (
-	v1 "betxin/api/v1"
-	"betxin/model"
-	"betxin/utils/errmsg"
 	"fmt"
+
+	"github.com/lixvyang/betxin/model"
+
+	v1 "github.com/lixvyang/betxin/api/v1"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -30,7 +33,7 @@ func CreateMixinpayOrder(c *gin.Context) {
 	}
 
 	data := &model.MixpayOrder{
-		Uid: userId,
+		Uid:      userId,
 		Tid:      r.Tid,
 		YesRatio: r.YesRatio,
 		NoRatio:  r.NoRatio,

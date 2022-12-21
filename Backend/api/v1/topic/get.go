@@ -1,11 +1,13 @@
 package topic
 
 import (
-	v1 "betxin/api/v1"
-	"betxin/model"
-	"betxin/utils/convert"
-	"betxin/utils/errmsg"
-	betxinredis "betxin/utils/redis"
+	"github.com/lixvyang/betxin/model"
+
+	v1 "github.com/lixvyang/betxin/api/v1"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
+	betxinredis "github.com/lixvyang/betxin/internal/utils/redis"
+	"github.com/lixvyang/betxin/pkg/convert"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"

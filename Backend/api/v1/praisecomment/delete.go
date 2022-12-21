@@ -1,25 +1,26 @@
-
 package praisecomment
 
 import (
-	v1 "betxin/api/v1"
-	"betxin/model"
-	"betxin/utils/errmsg"
+	"github.com/lixvyang/betxin/model"
+
+	v1 "github.com/lixvyang/betxin/api/v1"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 
 	"github.com/gin-gonic/gin"
 )
 
 type DeleteRequest struct {
-	Cid int `json:"cid"`
+	Cid int    `json:"cid"`
 	Uid string `json:"uid"`
 }
 
 func DeletePraiseComment(c *gin.Context) {
-	// uid cid 
+	// uid cid
 	var r DeleteRequest
 	if err := c.ShouldBindJSON(&r); err != nil {
 		v1.SendResponse(c, errmsg.ERROR_BIND, nil)
-		return 
+		return
 	}
 
 	if code := model.DeletePraise(r.Cid, r.Uid); code != errmsg.SUCCSE {

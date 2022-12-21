@@ -1,8 +1,9 @@
 package model
 
 import (
-	"betxin/utils/errmsg"
 	"time"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 )
 
 type FeedBack struct {
