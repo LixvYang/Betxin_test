@@ -1,7 +1,7 @@
 package model
 
 import (
-	"betxin/utils/errmsg"
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 	"log"
 	"time"
 

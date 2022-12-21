@@ -1,25 +1,25 @@
 package main
 
 import (
-	"betxin/model"
-	"betxin/router"
-	"betxin/service"
-	"betxin/service/dailycurrency"
-	"betxin/utils"
 	"context"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
-	betxinredis "betxin/utils/redis"
+	"github.com/lixvyang/betxin/internal/router"
+	"github.com/lixvyang/betxin/internal/service"
+	"github.com/lixvyang/betxin/internal/service/dailycurrency"
+	"github.com/lixvyang/betxin/internal/utils"
+	"github.com/lixvyang/betxin/model"
+
+	betxinredis "github.com/lixvyang/betxin/internal/utils/redis"
 )
 
 func main() {
 	signalch := make(chan os.Signal, 1)
 	utils.InitSetting.Do(utils.Init)
 	service.InitMixin.Do(service.InitMixinClient)
-
 	ctx := context.Background()
 	model.InitDb()
 	betxinredis.NewRedisClient(ctx)

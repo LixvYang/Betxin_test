@@ -1,8 +1,9 @@
 package model
 
 import (
-	"betxin/utils/errmsg"
 	"time"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
@@ -67,7 +68,7 @@ func UpdateCurrency(data *Currency) int {
 	return errmsg.SUCCSE
 }
 
-//  查询列表
+// 查询列表
 func ListCurrencies() ([]Currency, int, int) {
 	var currency []Currency
 	var total int64

@@ -1,12 +1,16 @@
 package usertotopic
 
 import (
-	v1 "betxin/api/v1"
-	"betxin/model"
-	"betxin/service"
-	"betxin/utils"
-	"betxin/utils/errmsg"
 	"context"
+
+	"github.com/lixvyang/betxin/internal/service"
+
+	"github.com/lixvyang/betxin/model"
+
+	v1 "github.com/lixvyang/betxin/api/v1"
+
+	"github.com/lixvyang/betxin/internal/utils"
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 
 	"github.com/fox-one/mixin-sdk-go"
 	"github.com/gin-gonic/gin"

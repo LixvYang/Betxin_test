@@ -1,12 +1,15 @@
 package usertotopic
 
 import (
-	v1 "betxin/api/v1"
-	"betxin/model"
-	"betxin/utils/convert"
-	"betxin/utils/errmsg"
-	betxinredis "betxin/utils/redis"
 	"fmt"
+
+	"github.com/lixvyang/betxin/model"
+
+	v1 "github.com/lixvyang/betxin/api/v1"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
+	betxinredis "github.com/lixvyang/betxin/internal/utils/redis"
+	"github.com/lixvyang/betxin/pkg/convert"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"

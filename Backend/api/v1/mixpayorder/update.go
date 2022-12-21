@@ -1,11 +1,15 @@
 package mixpayorder
 
 import (
-	v1 "betxin/api/v1"
-	"betxin/model"
-	"betxin/service/mixpay"
-	"betxin/utils/errmsg"
 	"net/http"
+
+	"github.com/lixvyang/betxin/internal/service/mixpay"
+
+	"github.com/lixvyang/betxin/model"
+
+	v1 "github.com/lixvyang/betxin/api/v1"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 
 	"github.com/gin-gonic/gin"
 )

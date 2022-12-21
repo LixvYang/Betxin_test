@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"betxin/utils"
+	"github.com/lixvyang/betxin/internal/utils"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

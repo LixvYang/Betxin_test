@@ -2,23 +2,24 @@
 package model
 
 import (
-	"betxin/utils/errmsg"
 	"time"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
 type Refund struct {
-	Id        uint            `gorm:"primarykey" json:"id"`
-	UserId    string          `gorm:"type:varchar(50);index;" json:"user_id"`
-	Tid       string          `gorm:"varchar(50);" json:"tid"`
-	AssetId   string          `gorm:"type:varchar(50);" json:"asset_id"`
-	RefundPrice    decimal.Decimal `gorm:"type:decimal(16, 8)" json:"refund_price"`
-	Memo      string          `gorm:"type:varchar(200);" json:"memo"`
-	TraceId   string          `gorm:"type:varchar(50);not null;uniqueIndex;" json:"trace_id"`
-	CreatedAt time.Time       `gorm:"datatime(3)" json:"created_at"`
-	UpdatedAt time.Time       `gorm:"datatime(3)" json:"updated_at"`
+	Id          uint            `gorm:"primarykey" json:"id"`
+	UserId      string          `gorm:"type:varchar(50);index;" json:"user_id"`
+	Tid         string          `gorm:"varchar(50);" json:"tid"`
+	AssetId     string          `gorm:"type:varchar(50);" json:"asset_id"`
+	RefundPrice decimal.Decimal `gorm:"type:decimal(16, 8)" json:"refund_price"`
+	Memo        string          `gorm:"type:varchar(200);" json:"memo"`
+	TraceId     string          `gorm:"type:varchar(50);not null;uniqueIndex;" json:"trace_id"`
+	CreatedAt   time.Time       `gorm:"datatime(3)" json:"created_at"`
+	UpdatedAt   time.Time       `gorm:"datatime(3)" json:"updated_at"`
 }
 
 func CreateRefund(data *Refund) int {

@@ -1,11 +1,14 @@
 package bonuse
 
 import (
-	v1 "betxin/api/v1"
-	"betxin/model"
-	"betxin/utils/convert"
-	"betxin/utils/errmsg"
 	"log"
+
+	"github.com/lixvyang/betxin/model"
+
+	v1 "github.com/lixvyang/betxin/api/v1"
+
+	"github.com/lixvyang/betxin/pkg/convert"
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 
 	"github.com/gin-gonic/gin"
 )

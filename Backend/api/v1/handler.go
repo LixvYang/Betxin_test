@@ -1,9 +1,10 @@
 package v1
 
 import (
-	"betxin/utils/errmsg"
 	"net/http"
 	"time"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
 
 	"github.com/gin-gonic/gin"
 )

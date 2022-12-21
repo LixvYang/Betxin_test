@@ -1,13 +1,14 @@
 package model
 
 import (
-	"betxin/utils/errmsg"
-	betxinredis "betxin/utils/redis"
 	"errors"
 	"fmt"
 	"log"
 	"sync"
 	"time"
+
+	"github.com/lixvyang/betxin/internal/utils/errmsg"
+	betxinredis "github.com/lixvyang/betxin/internal/utils/redis"
 
 	"gorm.io/gorm"
 
